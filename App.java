@@ -30,6 +30,10 @@ public class App
 
     private static void outputFile(String plaintext, String name) throws IOException
     {
+        File outputDirectory = new File("." + File.separator + "outputs");
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdir();
+        }
         File outputFile = new File("." + File.separator + "outputs" + File.separator + name);
         if (outputFile.exists()) {
             File tmpFile = new File("." + File.separator + "outputs" + File.separator + "tmp.txt");
