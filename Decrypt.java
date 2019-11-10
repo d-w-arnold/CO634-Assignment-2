@@ -4,7 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 /**
- * Abstract Class for Decryption of ciphertext encode with a Cipher.
+ * Abstract Class for Decryption of ciphertext encoded with a Cipher.
  *
  * @author David W. Arnold
  * @version 09/11/2019

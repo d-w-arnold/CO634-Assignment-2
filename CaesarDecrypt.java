@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Decryption of ciphertext encode with a Caesar Cipher.
+ * Decryption of ciphertext encoded with a Caesar Cipher.
  *
  * @author David W. Arnold
  * @version 09/11/2019

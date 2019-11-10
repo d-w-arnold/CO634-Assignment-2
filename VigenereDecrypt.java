@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Decryption of ciphertext encode with a Vigenere Cipher.
+ * Decryption of ciphertext encoded with a Vigenere Cipher.
  *
  * @author David W. Arnold
  * @version 09/11/2019
@@ -50,6 +50,8 @@ public class VigenereDecrypt extends Decrypt
      */
     public String decrypt(int len)
     {
+
+
         return "";
     }
 }
