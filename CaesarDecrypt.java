@@ -29,9 +29,10 @@ public class CaesarDecrypt extends Decrypt
             // If the tess??.txt file contains the decrypted plaintext with a given k value,
             // it must be the correct decryption.
             if (tess.contains(plaintext)) {
-                System.out.println("Caesar Cipher\n");
+                System.out.println(getExercise(cipherFile) + ": Caesar Cipher");
                 System.out.println("Decrypted: " + plaintext);
                 System.out.println("Key: " + k);
+                System.out.println();
                 decryptedPlaintext = plaintext;
             }
         }

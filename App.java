@@ -15,11 +15,17 @@ public class App
     public static void main(String[] args) throws IOException
     {
         File tess26 = new File("." + File.separator + "tess26.txt");
+        File tess27 = new File("." + File.separator + "tess27.txt");
+
+        // Exercise 1
         File cexercise1 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise1.txt");
-
         CaesarDecrypt caesar = new CaesarDecrypt(tess26, cexercise1);
-
         outputFile(caesar.decrypt(), genPlaintextFileName(cexercise1));
+
+        // Exercise 2
+        File cexercise2 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise2.txt");
+        VigenereDecrypt vigenere1 = new VigenereDecrypt(tess26, cexercise2);
+        outputFile(vigenere1.decrypt("TESSOFTHEDURBERVILLES"), genPlaintextFileName(cexercise2));
     }
 
     private static void outputFile(String plaintext, String name) throws IOException

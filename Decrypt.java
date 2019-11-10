@@ -14,16 +14,17 @@ public abstract class Decrypt
     private final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     protected String tess;
     protected String ciphertext;
+    protected File cipherFile;
     protected char[] charAlphabet;
 
     public Decrypt(File tessFile, File cipherFile) throws IOException
     {
+
         tess = new BufferedReader(new FileReader(tessFile)).readLine();
         ciphertext = new BufferedReader(new FileReader(cipherFile)).readLine();
+        this.cipherFile = cipherFile;
         setCharAlphabet(tessFile);
     }
-
-    abstract String decrypt();
 
     protected int findIndex(char[] arr, int t)
     {
@@ -39,6 +40,12 @@ public abstract class Decrypt
             i++;
         }
         return -1;
+    }
+
+    protected String getExercise(File file)
+    {
+        String cipherFileName = file.getName();
+        return cipherFileName.substring(1, cipherFileName.length() - 4);
     }
 
     private void setCharAlphabet(File tess)
