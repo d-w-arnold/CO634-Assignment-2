@@ -1,3 +1,5 @@
+import javafx.util.Pair;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,13 +61,13 @@ public class VigenereDecrypt extends Decrypt
         // TESSOF - key (unknown)
         // MAIDONMAIDONMAIDO - plaintext
 
-        ArrayList<ArrayList<Character>> potentialKeyLetters = new ArrayList<>();
+        ArrayList<ArrayList<Pair<ArrayList<Integer>, Character>>> potentialKeyLetters = new ArrayList<>();
 
         if (ciphertext.length() >= (keyLen * 2)) {
             // Each letter in a key
             // (1 in (keyLen = 6))
             for (int i = 0; i < charsAtKeyOccurrences.size(); i++) {
-                ArrayList<Character> potentialKeysForLetter = new ArrayList<>();
+                ArrayList<Pair<ArrayList<Integer>, Character>> potentialKeysForLetter = new ArrayList<>();
                 // FF
                 // index 0 of key
                 char[] charArray = charsAtKeyOccurrences.get(i).toCharArray();
@@ -144,7 +146,7 @@ public class VigenereDecrypt extends Decrypt
                         }
                         // [9, 15, 21]
                         if (!indexes.isEmpty()) {
-                            potentialKeysForLetter.add(c);
+                            potentialKeysForLetter.add(new Pair(indexes, c));
                         }
                     } // end if statement
                 } // end for loop
