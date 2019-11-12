@@ -21,10 +21,12 @@ public class VigenereDecrypt extends Decrypt
         super(tessFile, cipherFile);
         this.pt = "";
         this.plaintextFound = false;
+        this.unknownKey = "";
     }
 
     /**
      * Decrypt with a provided key.
+     *
      * @param key The key used to decrypt the ciphertext.
      */
     public String decrypt(String key)
@@ -35,11 +37,11 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with an unknown key which is an arbitary sequence of letters.
+     *
      * @param keyLen Length of the unknown key.
      */
     public String decrypt(int keyLen)
     {
-        // Tested
         if (keyLen == 1) {
             for (char c : charAlphabet) {
                 decryptPrivate(Character.toString(c));
@@ -54,12 +56,7 @@ public class VigenereDecrypt extends Decrypt
         int ctLen = ciphertext.length();
         int ct_mod = ctLen % keyLen;
         int div_into = (ctLen - ct_mod) / keyLen;
-        // ArrayList<Integer> keyIndexOccurrences = genKeyIndexOccurrences(keyLen, ct_mod, div_into);
         ArrayList<String> charsAtKeyOccurrences = genCharsAtKeyOccurrences(keyLen);
-
-        // FEAVCSFEAVCSFEAVC - ciphertext
-        // TESSOF - key (unknown)
-        // MAIDONMAIDONMAIDO - plaintext
 
         ArrayList<ArrayList<Pair<ArrayList<Integer>, Character>>> potentialKeyLetters = new ArrayList<>();
 
@@ -123,7 +120,6 @@ public class VigenereDecrypt extends Decrypt
                         for (int k = 0; k < ind.get(index).size(); k++) {
                             ArrayList<Integer> tmpIndexes = new ArrayList<>();
                             boolean firstTime = true;
-                            boolean e = true;
                             int num = ind.get(index).get(k);
                             for (int l = 1; l < ind.size(); l++) {
                                 int num1 = num + keyLen;
@@ -146,13 +142,76 @@ public class VigenereDecrypt extends Decrypt
                         }
                         // [9, 15, 21]
                         if (!indexes.isEmpty()) {
-                            potentialKeysForLetter.add(new Pair(indexes, c));
+                            potentialKeysForLetter.add(new Pair<>(indexes, c));
                         }
                     } // end if statement
                 } // end for loop
                 potentialKeyLetters.add(potentialKeysForLetter);
             } //end for loop
-            System.out.println();
+            System.out.println();  // Debug/Check potentialKeyLetters data array entry point
+
+            // Find keys which increment between each successive index.
+            ArrayList<ArrayList<Character>> possibleLetters = new ArrayList<>();
+            int overallIndex = 0;
+            int index = 0;
+            for (int k = 0; k < potentialKeyLetters.get(index).size(); k++) {
+                // Add first letter to possible letters
+                ArrayList<Character> initialChar = new ArrayList<>();
+                initialChar.add(potentialKeyLetters.get(index).get(k).getValue());
+                possibleLetters.add(initialChar);
+                Pair<ArrayList<Integer>, Character> occurrences = potentialKeyLetters.get(index).get(k);
+                outerloop:
+                for (int l = 1; l < potentialKeyLetters.size(); l++) {
+                    ArrayList<Integer> addedToList = addToEachElementInList(occurrences.getKey());
+                    char lookedUp = lookupChar(l, addedToList, potentialKeyLetters);
+                    if (lookedUp == '?') {
+                        break outerloop;
+                    }
+                    Pair<ArrayList<Integer>, Character> occurrences1 = new Pair<>(addedToList, lookedUp);
+                    innerloop:
+                    for (int i = 0; i < potentialKeyLetters.get(l).size(); i++) {
+                        ArrayList<Integer> x = potentialKeyLetters.get(l).get(i).getKey();
+                        ArrayList<Integer> occurrences1Key = occurrences1.getKey();
+                        if (x.size() == occurrences1Key.size()) {
+                            if (x.equals(occurrences1Key)) {
+                                ArrayList<Character> tmp = new ArrayList<>(possibleLetters.get(overallIndex));
+                                tmp.add(occurrences1.getValue());
+                                possibleLetters.set(overallIndex, tmp);
+                                occurrences = occurrences1;
+                                break innerloop;
+                            }
+                        } else {
+                            boolean checked = true;
+                            for (int j = 0; j < x.size(); j++) {
+                                if (x.get(i) != occurrences1Key.get(i)) {
+                                    checked = false;
+                                }
+                            }
+                            if (checked) {
+                                ArrayList<Character> tmp = new ArrayList<>(possibleLetters.get(overallIndex));
+                                tmp.add(occurrences1.getValue());
+                                possibleLetters.set(overallIndex, tmp);
+                                occurrences = occurrences1;
+                                break innerloop;
+                            }
+                        }
+                    }
+                }
+                overallIndex++;
+            }
+
+            // From the list of possibleLetters, only the one the same size
+            // as the key will be the required decryption key.
+
+            for (ArrayList<Character> arrayP : possibleLetters) {
+                if (arrayP.size() == keyLen) {
+                    for (char c : arrayP) {
+                        unknownKey += Character.toString(c);
+                    }
+                }
+            }
+
+            System.out.println("Key is: " + unknownKey);
         } else {
             System.out.println("ciphertext.length() < (keyLen * 2)");
         }
@@ -160,7 +219,43 @@ public class VigenereDecrypt extends Decrypt
         return "";
     }
 
-    // Tested
+    private char lookupChar(int index, ArrayList<Integer> addedToList,
+            ArrayList<ArrayList<Pair<ArrayList<Integer>, Character>>> potentialKeyLetters)
+    {
+        for (Pair<ArrayList<Integer>, Character> p : potentialKeyLetters.get(index)) {
+            ArrayList<Integer> xList = p.getKey();
+            int x = xList.size();
+            int y = addedToList.size();
+            if (x == y) {
+                if (xList.equals(addedToList)) {
+                    return p.getValue();
+                }
+            } else {
+                boolean checked = true;
+                for (int i = 0; i < x; i++) {
+                    if (xList.get(i) != addedToList.get(i)) {
+                        checked = false;
+                    }
+                }
+                if (checked) {
+                    return p.getValue();
+                }
+            }
+        }
+        return '?';
+    }
+
+    private ArrayList<Integer> addToEachElementInList(ArrayList<Integer> list)
+    {
+        ArrayList<Integer> tmp = new ArrayList<>(list);
+        if (!tmp.isEmpty()) {
+            for (int i = 0; i < tmp.size(); i++) {
+                tmp.set(i, (tmp.get(i) + 1));
+            }
+        }
+        return tmp;
+    }
+
     // ciphertext = FF
     // key = T
     // plaintext = MM
