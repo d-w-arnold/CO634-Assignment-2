@@ -52,19 +52,20 @@ public class VigenereDecrypt extends Decrypt
         ArrayList<String> charsAtKeyOccurrences = genCharsAtKeyOccurrences(keyLen);
         ArrayList<ArrayList<Pair<ArrayList<Integer>, Character>>> potentialKeyLetters = new ArrayList<>();
         if (ciphertext.length() >= (keyLen * 2)) {
-
             System.out.println("Here - ciphertext.length() >= (keyLen * 2");
-
             potentialKeyLetters = genPotentialKeyLetters(charsAtKeyOccurrences, keyLen);
-
             System.out.println("potentialKeyLetters: " + potentialKeyLetters);
-
             findKey(potentialKeyLetters, keyLen);
+            System.out.println("unknownKey: " + unknownKey);
+            System.out.println();
+            if (!unknownKey.equals("")) {
+                decryptPrivate(unknownKey);
+                return pt;
+            } else {
+                System.out.println("Could not find the unknownKey");
+                return pt;
+            }
 
-            System.out.println("unknown: " + unknownKey);
-
-            decryptPrivate(unknownKey);
-            return pt;
         } else {
             System.out.println("ciphertext.length() < (keyLen * 2)");
         }
@@ -127,35 +128,88 @@ public class VigenereDecrypt extends Decrypt
             char[] charArray = charsAtKeyOccurrence.toCharArray();
             // Each char in charArray will decrypt with the same key
             for (char c : charAlphabet) {
-                // FF decrypted with a given c from charAlphabet
-                String decrypted = decryptCharsOfSameKeyOccurrences(charArray, c);
-                char[] decryptedArray = decrypted.toCharArray();
-                // Check to see if tess contains all chars in decrypted
-                boolean containsAll = true;
-                for (char decryptC : decryptedArray) {
-                    if (!tess.contains(Character.toString(decryptC))) {
-                        containsAll = false;
-                        break;
+                // charArray decrypted with a given c from charAlphabet
+                char[] decryptedArray = decryptCharsOfSameKeyOccurrences(charArray, c);
+                ArrayList<ArrayList<Integer>> aIFCA = new ArrayList<>();
+                boolean nextC = false;
+                nextC:
+                // Generates aIFCA: allIndexesForCharArray
+                for (int j = 0; j < decryptedArray.length; j++) {
+                    char decryptedJ = decryptedArray[j];
+                    if (tess.contains(Character.toString(decryptedJ))) {
+                        for (int i = -1; (i = tess.indexOf(decryptedJ, i + 1)) != -1; i++) {
+                            if (j == aIFCA.size()) {
+                                ArrayList<Integer> tmp = new ArrayList<>();
+                                tmp.add(i);
+                                aIFCA.add(tmp);
+                            } else {
+                                ArrayList<Integer> tmp = new ArrayList<>(aIFCA.get(j));
+                                tmp.add(i);
+                                aIFCA.set(j, tmp);
+                            }
+                        }
+                    } else {
+                        nextC = true;
+                        break nextC;
                     }
                 }
-                // If tess contains all chars in decrypted
-                if (containsAll) {
-                    ArrayList<ArrayList<Integer>> allIndexesForCharArray = new ArrayList<>(genAllIndexesForCharArray(decryptedArray));
-                    ArrayList<Integer> indexes = new ArrayList<>(genIndexes(allIndexesForCharArray, keyLen));
-                    if (!indexes.isEmpty()) {
-                        // [9, 15, 21]=C
-                        potentialKeysForLetter.add(new Pair<>(indexes, c));
-                        System.out.println(indexes + " = " + c);
+                if (nextC) {
+                    continue;
+                }
+                ArrayList<Integer> indexes = new ArrayList<>();
+//                int index = 0;
+                boolean nextK;
+                outerloop:
+                for (int k = 0; k < aIFCA.get(0).size(); k++) {
+                    nextK = false;
+                    ArrayList<Integer> tmpIndexes = new ArrayList<>();
+                    boolean firstTime = true;
+                    int num0 = aIFCA.get(0).get(k);
+                    int num1 = num0;
+                    for (int l = 1; l < aIFCA.size(); l++) {
+                        num1 += keyLen;
+                        if (aIFCA.get(l).contains(num1)) {
+                            if (firstTime) {
+                                tmpIndexes.add(num0);
+                                tmpIndexes.add(num1);
+                                firstTime = false;
+                            } else {
+                                tmpIndexes.add(num1);
+                            }
+                        } else {
+                            nextK = true;
+                            break;
+                        }
+                    }
+                    if (nextK) {
+                        continue;
+                    }
+                    if (tmpIndexes.size() == aIFCA.size()) {
+                        indexes.addAll(tmpIndexes);
+                        break outerloop;
                     }
                 }
+                if (!indexes.isEmpty()) {
+                    potentialKeysForLetter.add(new Pair<>(indexes, c));
+                    // TODO third draft -
+                    //  unknownKey += Character.toString(c); // C [0] // unknownKey == "C"
+                    //  try A-Z on the next index, to try build the key,
+                    //  if the next A-Z does find the next in the path ([ ?+1, ?+1, ?+1 ]=Q) // Q [1]
+                    //   unknownKey += Character.toString(c); // Q [1] // unknownKey == "CQ"
+                    //  if the next A-Z doesn't find the next in the path // Q [1]
+                    //   go to // D [0]
+                    //  continue until // unknownKey == "TESSOF" [0-5] has been found
+                }
+
             }
             tmpPotentialKeyLetters.add(potentialKeysForLetter);
         }
         return tmpPotentialKeyLetters;
     }
 
+    // Decrypts each char, in an array of chars, with a a single character key
     // ciphertext = FF, key = T, plaintext = MM
-    private String decryptCharsOfSameKeyOccurrences(char[] charsOfSameKeyOccurrences, char key)
+    private char[] decryptCharsOfSameKeyOccurrences(char[] charsOfSameKeyOccurrences, char key)
     {
         System.out.println("Here - decryptCharsOfSameKeyOccurrences");
         String decryptedPlaintext = "";
@@ -168,77 +222,7 @@ public class VigenereDecrypt extends Decrypt
             int index = (charAlphaLen + (a - b)) % charAlphaLen;
             decryptedPlaintext += charAlphabet[index];
         }
-        return decryptedPlaintext;
-    }
-
-
-    // Generate all indexes for all charsAtKeyOccurrence
-    // [
-    // [9, 15, 21, 47, 48, 49],
-    // [9, 15, 21, 47, 48, 49],
-    // [9, 15, 21, 47, 48, 49],
-    // ]
-    private ArrayList<ArrayList<Integer>> genAllIndexesForCharArray(char[] decryptedArray)
-    {
-        System.out.println("Here - genAllIndexesForCharArray");
-        ArrayList<ArrayList<Integer>> tmpInd = new ArrayList<>();
-        char[] tessArray = tess.toCharArray();
-        for (int k = 0; k < decryptedArray.length; k++) {
-            for (int l = 0; l < tessArray.length; l++) {
-                char tessC = tessArray[l];
-                if (tessC == decryptedArray[k]) {
-                    ArrayList<Integer> tmp;
-                    if (k <= (tmpInd.size() - 1)) {
-                        tmp = new ArrayList<>(tmpInd.get(k));
-                    } else {
-                        tmp = new ArrayList<>();
-                    }
-                    tmp.add(l);
-                    if (k <= (tmpInd.size() - 1)) {
-                        tmpInd.set(k, tmp);
-                        System.out.println(tmpInd);
-                    } else {
-                        tmpInd.add(tmp);
-                        System.out.println(tmpInd);
-                    }
-                }
-            }
-        }
-        return tmpInd;
-    }
-
-    // Generate pairs of potentialKeysForLetter
-    // [9, 15, 21]
-    private ArrayList<Integer> genIndexes(ArrayList<ArrayList<Integer>> ind, int keyLen)
-    {
-        System.out.println("Here - genIndexes");
-        ArrayList<Integer> tmpIndexArray = new ArrayList<>();
-        int index = 0;
-        outerloop:
-        for (int k = 0; k < ind.get(index).size(); k++) {
-            ArrayList<Integer> tmpIndexes = new ArrayList<>();
-            boolean firstTime = true;
-            int num = ind.get(index).get(k);
-            for (int l = 1; l < ind.size(); l++) {
-                int num1 = num + keyLen;
-                if (ind.get(l).contains(num1)) {
-                    if (firstTime) {
-                        tmpIndexes.add(num);
-                        tmpIndexes.add(num1);
-                        firstTime = false;
-                        num = num1;
-                    } else {
-                        tmpIndexes.add(num1);
-                        num = num1;
-                    }
-                }
-            }
-            if (tmpIndexes.size() == ind.size()) {
-                tmpIndexArray.addAll(tmpIndexes);
-                break outerloop;
-            }
-        }
-        return tmpIndexArray;
+        return decryptedPlaintext.toCharArray();
     }
 
     // Checks all possibleKeyLetters, generates a set of possibleLetters,
@@ -284,8 +268,9 @@ public class VigenereDecrypt extends Decrypt
                         // [?, ?] == [?, ?, ?]
                         boolean checked = true;
                         for (int j = 0; j < x.size(); j++) {
-                            if (x.get(i) != occurrences1Key.get(i)) {
+                            if (x.get(j) != occurrences1Key.get(j)) {
                                 checked = false;
+                                break;
                             }
                         }
                         if (checked) {
@@ -358,17 +343,4 @@ public class VigenereDecrypt extends Decrypt
             }
         }
     }
-
-//    private ArrayList<Integer> genKeyIndexOccurrences(int keyLen, int ct_mod, int div_into)
-//    {
-//        ArrayList<Integer> tmp = new ArrayList<>();
-//        for (int i = 1; i <= keyLen; i++) {
-//            if (i <= ct_mod) {
-//                tmp.add((div_into + 1));
-//            } else {
-//                tmp.add(div_into);
-//            }
-//        }
-//        return tmp;
-//    }
 }
