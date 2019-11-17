@@ -54,6 +54,8 @@ public abstract class Decrypt
             charAlphabet = alphabet.toCharArray();
         } else if (tess.getName().equals("tess27.txt")) {
             charAlphabet = (alphabet + "|").toCharArray();
+        } else {
+            charAlphabet = alphabet.toCharArray();
         }
     }
 }

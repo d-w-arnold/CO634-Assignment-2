@@ -27,11 +27,10 @@ public class App
         VigenereDecrypt vigenere1 = new VigenereDecrypt(tess26, cexercise2);
         outputFile(vigenere1.decrypt("TESSOFTHEDURBERVILLES"), genPlaintextFileName(cexercise2));
 
-//        // Exercise 3
-//        File cexercise3 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise3.txt");
-//        VigenereDecrypt vigenere2 = new VigenereDecrypt(tess26, cexercise3);
-//        outputFile(vigenere2.decrypt(6), genPlaintextFileName(cexercise3));
-
+        // Exercise 3
+        File cexercise3 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise3.txt");
+        VigenereDecrypt vigenere2 = new VigenereDecrypt(tess26, cexercise3);
+        outputFile(vigenere2.decrypt(6), genPlaintextFileName(cexercise3));
     }
 
     private static void outputFile(String plaintext, String name) throws IOException
