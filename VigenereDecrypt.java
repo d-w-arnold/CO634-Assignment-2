@@ -42,6 +42,7 @@ public class VigenereDecrypt extends Decrypt
      */
     public String decrypt(String key)
     {
+        System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
         decryptPrivate(key);
         return pt;
     }
@@ -53,9 +54,35 @@ public class VigenereDecrypt extends Decrypt
      */
     public String decrypt(int keyLen)
     {
+        System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
         findKey(keyLen);
         decryptPrivate(unknownKey);
         return pt;
+    }
+
+    /**
+     * Decrypt with an unknown key which is an arbitary sequence of letters.
+     * @param smallestKeyLen Smallest possible length of the unknown key.
+     * @param largestKeyLen Largest possible length of the unknown key.
+     */
+    public String decrypt(int smallestKeyLen, int largestKeyLen)
+    {
+        System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
+        ArrayList<String> potentialKeys = new ArrayList<>();
+        for (int i = smallestKeyLen; i <= largestKeyLen; i++) {
+            findKey(i);
+            potentialKeys.add(unknownKey);
+            unknownKey = "";
+        }
+        System.out.println("Try Keys: " + potentialKeys);
+        String ptToReturn = "";
+        for (String key : potentialKeys) {
+            decryptPrivate(key);
+            if (!pt.equals("")) {
+                ptToReturn = pt;
+            }
+        }
+        return ptToReturn;
     }
 
     // Decrypt with known key
@@ -76,7 +103,6 @@ public class VigenereDecrypt extends Decrypt
         }
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(decryptedPlaintext)) {
-            System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
             System.out.println("Decrypted: " + decryptedPlaintext);
             System.out.println("Key: " + key);
             System.out.println();

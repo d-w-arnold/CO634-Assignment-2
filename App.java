@@ -31,6 +31,11 @@ public class App
         File cexercise3 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise3.txt");
         VigenereDecrypt vigenere2 = new VigenereDecrypt(tess26, cexercise3);
         outputFile(vigenere2.decrypt(6), genPlaintextFileName(cexercise3));
+
+        // Exercise 4
+        File cexercise4 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise4.txt");
+        VigenereDecrypt vigenere3 = new VigenereDecrypt(tess26, cexercise4);
+        outputFile(vigenere3.decrypt(4, 6), genPlaintextFileName(cexercise4));
     }
 
     private static void outputFile(String plaintext, String name) throws IOException
