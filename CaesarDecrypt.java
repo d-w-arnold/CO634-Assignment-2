@@ -31,7 +31,7 @@ public class CaesarDecrypt extends Decrypt
             if (tess.contains(plaintext)) {
                 System.out.println(getExercise(cipherFile) + ": Caesar Cipher");
                 System.out.println("Decrypted: " + plaintext);
-                System.out.println("Key: " + k);
+                System.out.println("Key: " + charAlphabet[k]);
                 System.out.println();
                 decryptedPlaintext = plaintext;
             }
