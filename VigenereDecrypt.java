@@ -53,6 +53,40 @@ public class VigenereDecrypt extends Decrypt
      */
     public String decrypt(int keyLen)
     {
+        findKey(keyLen);
+        decryptPrivate(unknownKey);
+        return pt;
+    }
+
+    // Decrypt with known key
+    private void decryptPrivate(String key)
+    {
+        String decryptedPlaintext = "";
+        char[] keyCharacters = key.toCharArray();
+        int charAlphaLen = charAlphabet.length;
+        int i = 0;
+        // For each character in the cipher text.
+        for (char character : ciphertext.toCharArray()) {
+            // The value of the character in the cipher text.
+            int a = findIndex(charAlphabet, character);
+            // The value of the character in the provided key.
+            int b = findIndex(charAlphabet, keyCharacters[(i % key.length())]);
+            decryptedPlaintext += charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen];
+            i++;
+        }
+        // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
+        if (tess.contains(decryptedPlaintext)) {
+            System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
+            System.out.println("Decrypted: " + decryptedPlaintext);
+            System.out.println("Key: " + key);
+            System.out.println();
+            pt = decryptedPlaintext;
+        }
+    }
+
+    // Find the most likely key of a certain length.
+    private void findKey(int keyLen)
+    {
         ArrayList<String> charsAtKeyOccurrences = genCharsAtKeyOccurrences(keyLen);
 
         // Create blank letterOccurrences data array.
@@ -104,35 +138,6 @@ public class VigenereDecrypt extends Decrypt
                 ansFreq.add(count);
             }
             unknownKey += charAlphabet[ansFreq.indexOf(Collections.max(ansFreq))];
-        }
-
-        //Run decrypt with known key
-        decryptPrivate(unknownKey);
-        return pt;
-    }
-
-    private void decryptPrivate(String key)
-    {
-        String decryptedPlaintext = "";
-        char[] keyCharacters = key.toCharArray();
-        int charAlphaLen = charAlphabet.length;
-        int i = 0;
-        // For each character in the cipher text.
-        for (char character : ciphertext.toCharArray()) {
-            // The value of the character in the cipher text.
-            int a = findIndex(charAlphabet, character);
-            // The value of the character in the provided key.
-            int b = findIndex(charAlphabet, keyCharacters[(i % key.length())]);
-            decryptedPlaintext += charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen];
-            i++;
-        }
-        // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
-        if (tess.contains(decryptedPlaintext)) {
-            System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
-            System.out.println("Decrypted: " + decryptedPlaintext);
-            System.out.println("Key: " + key);
-            System.out.println();
-            pt = decryptedPlaintext;
         }
     }
 
