@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 
 /**
  * Decryption of ciphertext encoded with a Vigenere Cipher.
- *
  * @author David W. Arnold
  * @version 09/11/2019
  */
@@ -37,7 +36,6 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with a provided key.
-     *
      * @param key The key used to decrypt the ciphertext.
      */
     public String decrypt(String key)
@@ -49,7 +47,6 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with an unknown key which is an arbitary sequence of letters.
-     *
      * @param keyLen Length of the unknown key.
      */
     public String decrypt(int keyLen)
@@ -167,17 +164,17 @@ public class VigenereDecrypt extends Decrypt
         }
     }
 
+    // Generate an ArrayList<String> containing all String of chars
+    // which fall on the same letter of the key.
     private ArrayList<String> genCharsAtKeyOccurrences(int keyLen)
     {
         ArrayList<String> tmp = new ArrayList<>();
         for (int i = 0; i < ciphertext.length(); i++) {
             int cIndexOfKey = i % keyLen;
             if (cIndexOfKey < tmp.size()) {
-                // Concatenate to end of value stored at index
                 String newString = tmp.get(cIndexOfKey) + ciphertext.substring(i, i + 1);
                 tmp.set(cIndexOfKey, newString);
             } else {
-                // Normal add
                 tmp.add(ciphertext.substring(i, i + 1));
             }
         }
