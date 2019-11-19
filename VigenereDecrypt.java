@@ -7,25 +7,43 @@ import java.util.LinkedHashMap;
 
 /**
  * Decryption of ciphertext encoded with a Vigenere Cipher.
+ *
  * @author David W. Arnold
  * @version 09/11/2019
  */
 public class VigenereDecrypt extends Decrypt
 {
+    final private LinkedHashMap<Character, Double> FREQUENCY_OF_LETTERS_IN_ENGLISH = new LinkedHashMap<Character, Double>()
+    {{
+        put('A', 8.167);
+        put('B', 1.492);
+        put('C', 2.782);
+        put('D', 4.253);
+        put('E', 12.702);
+        put('F', 2.228);
+        put('G', 2.015);
+        put('H', 6.094);
+        put('I', 6.996);
+        put('J', 0.153);
+        put('K', 0.772);
+        put('L', 4.025);
+        put('M', 2.406);
+        put('N', 6.749);
+        put('O', 7.507);
+        put('P', 1.929);
+        put('Q', 0.095);
+        put('R', 5.987);
+        put('S', 6.327);
+        put('T', 9.056);
+        put('U', 2.758);
+        put('V', 0.978);
+        put('W', 2.360);
+        put('X', 0.150);
+        put('Y', 1.974);
+        put('Z', 0.074);
+    }};
     private String pt;
     private String unknownKey;
-
-    final private LinkedHashMap<Character, Double> FREQUENCY_OF_LETTERS_IN_ENGLISH = new LinkedHashMap<Character, Double>() {{
-       put('A', 8.167); put('B', 1.492); put('C', 2.782);
-       put('D', 4.253); put('E', 12.702); put('F', 2.228);
-       put('G', 2.015); put('H', 6.094); put('I', 6.996);
-       put('J', 0.153); put('K', 0.772); put('L', 4.025);
-       put('M', 2.406); put('N', 6.749); put('O', 7.507);
-       put('P', 1.929); put('Q', 0.095); put('R', 5.987);
-       put('S', 6.327); put('T', 9.056); put('U', 2.758);
-       put('V', 0.978); put('W', 2.360); put('X', 0.150);
-       put('Y', 1.974); put('Z', 0.074);
-    }};
 
     public VigenereDecrypt(File tessFile, File cipherFile) throws IOException
     {
@@ -36,6 +54,7 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with a provided key.
+     *
      * @param key The key used to decrypt the ciphertext.
      */
     public String decrypt(String key)
@@ -47,6 +66,7 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with an unknown key which is an arbitary sequence of letters.
+     *
      * @param keyLen Length of the unknown key.
      */
     public String decrypt(int keyLen)
@@ -59,8 +79,9 @@ public class VigenereDecrypt extends Decrypt
 
     /**
      * Decrypt with an unknown key which is an arbitary sequence of letters.
+     *
      * @param smallestKeyLen Smallest possible length of the unknown key.
-     * @param largestKeyLen Largest possible length of the unknown key.
+     * @param largestKeyLen  Largest possible length of the unknown key.
      */
     public String decrypt(int smallestKeyLen, int largestKeyLen)
     {

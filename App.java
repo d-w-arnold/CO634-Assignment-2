@@ -3,7 +3,6 @@ import java.nio.channels.FileChannel;
 
 /**
  * App for Decryption of ciphertexts, using main() method.
- *
  * Provides static outputFile() method to generate a TXT file with the decrypted plaintext of a given Cipher.
  * Any description included in these files is retained between consecutive runs of the main() method.
  *
@@ -41,6 +40,11 @@ public class App
         File cexercise5 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise5.txt");
         TranspositionDecrypt transpositionDecrypt1 = new TranspositionDecrypt(tess26, cexercise5);
         outputFile(transpositionDecrypt1.decrypt(4, 6), genPlaintextFileName(cexercise5));
+
+        // Exercise 6
+        File cexercise6 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise6.txt");
+        TranspositionDecrypt transpositionDecrypt2 = new TranspositionDecrypt(tess26, cexercise6);
+        outputFile(transpositionDecrypt2.decrypt(6), genPlaintextFileName(cexercise6));
     }
 
     private static void outputFile(String plaintext, String name) throws IOException
