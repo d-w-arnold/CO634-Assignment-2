@@ -45,6 +45,11 @@ public class App
         File cexercise6 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise6.txt");
         TranspositionDecrypt transpositionDecrypt2 = new TranspositionDecrypt(tess26, cexercise6);
         outputFile(transpositionDecrypt2.decrypt(6), genPlaintextFileName(cexercise6));
+
+        // Exercise 7
+        File cexercise7 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise7.txt");
+        GenSubDecrypt genSubDecrypt = new GenSubDecrypt(tess27, cexercise7);
+        outputFile(genSubDecrypt.decrypt(), genPlaintextFileName(cexercise7));
     }
 
     private static void outputFile(String plaintext, String name) throws IOException
