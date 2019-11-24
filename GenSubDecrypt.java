@@ -1,8 +1,7 @@
 import javafx.util.Pair;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 
 /**
  * Decryption of ciphertext encoded with a General Substitution Cipher.
@@ -84,42 +83,81 @@ public class GenSubDecrypt extends Decrypt
                 }
             }
         });
-        // Generate String representation of character mappings
-        // Key: letter in ciphertext
-        // Value: most likely mapped letter based on frequency of occurrence
-        ArrayList<Pair<Character, Character>> mappedLetters = new ArrayList<>();
-        for (int i = 0; i < characterCounts.size(); i++) {
-            mappedLetters.add(new Pair<>(characterCounts.get(i).getKey(), ENGLISH_FREQUENCY_ORDER.get(i)));
-        }
-        // Generate mapped letters String
+        // Generate mappedLetters String for decryption
         String mappedString = "";
-        for (char sw : charAlphabet) {
-            for (Pair<Character, Character> pair : mappedLetters) {
-                if (pair.getValue() == sw) {
-                    mappedString += pair.getKey();
-                }
-            }
+        for (int i = 0; i < characterCounts.size(); i++) {
+            mappedString += characterCounts.get(i).getKey();
         }
-        // Using mappedChars generate plaintext
+        System.out.println();
+        // Try all permutations of mappedString
         String decryptedPlaintext = "";
-        for (char ctChar : ciphertext.toCharArray()) {
-            for (Pair<Character, Character> pair : mappedLetters) {
-
-                if (pair.getKey() == ctChar) {
-
-                    decryptedPlaintext += pair.getValue();
-
+        Set<String> oldSet = null;
+        int count = 0;
+        for (int i = 1; i < mappedString.length(); i++) {
+            Set<String> set = permute(mappedString.substring(mappedString.length() - i));
+            for (String s : set) {
+                if (oldSet == null || !oldSet.contains(s.substring(s.length() - (i - 1)))) {
+                    String permuMappedString = mappedString.substring(0, mappedString.length() - i) + s;
+                    // Generate permutation of mappedLetters according to the permutation of mappedString
+                    HashMap<Character, Character> permuMappedLetters = new HashMap<>();
+                    char[] pMS = permuMappedString.toCharArray();
+                    for (int j = 0; j < pMS.length; j++) {
+                        permuMappedLetters.put(pMS[j], ENGLISH_FREQUENCY_ORDER.get(j));
+                    }
+                    // Generate decrypted plaintext from permutation of mapped
+                    decryptedPlaintext = "";
+                    for (char ctChar : ciphertext.toCharArray()) {
+                        char newCtChar = permuMappedLetters.get(ctChar);
+                        decryptedPlaintext += newCtChar;
+                    }
+                    // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
+                    if (tess.contains(decryptedPlaintext)) {
+                        System.out.println("Decrypted: " + decryptedPlaintext);
+                        System.out.println("Character Alphabet: " + String.valueOf(charAlphabet));
+                        System.out.println("Character Mappings: " + permuMappedLetters);
+                        System.out.println("Count Iterations: " + count);
+                        System.out.println();
+                        pt = decryptedPlaintext;
+                        return pt;
+                    } else {
+                        System.out.println("Not: " + permuMappedString);
+                        count++;
+                    }
                 }
             }
-        }
-        // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
-        if (tess.contains(decryptedPlaintext)) {
-            System.out.println("Decrypted: " + decryptedPlaintext);
-            System.out.println("Character Alphabet: " + String.valueOf(charAlphabet));
-            System.out.println("Character Mappings: " + "");
-            System.out.println();
-            pt = decryptedPlaintext;
+            oldSet = set;
         }
         return pt;
+    }
+
+    // For a given string, return a set of all possible strings made byt the chars of the provided string.
+    private static Set<String> permute(String chars)
+    {
+        // Use sets to eliminate semantic duplicates (aab is still aab even if you switch the two 'a's)
+        // Switch to HashSet for better performance
+        Set<String> set = new TreeSet<>();
+
+        // Termination condition: only 1 permutation for a string of length 1
+        if (chars.length() == 1) {
+            set.add(chars);
+        }
+        else {
+            // Give each character a chance to be the first in the permuted string
+            for (int i = 0; i<chars.length(); i++)
+            {
+                // Remove the character at index i from the string
+                String pre = chars.substring(0, i);
+                String post = chars.substring(i + 1);
+                String remaining = pre + post;
+
+                // Recurse to find all the permutations of the remaining chars
+                for (String permutation : permute(remaining))
+                {
+                    // Concatenate the first character with the permutations of the remaining chars
+                    set.add(chars.charAt(i) + permutation);
+                }
+            }
+        }
+        return set;
     }
 }
