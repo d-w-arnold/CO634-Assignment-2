@@ -134,12 +134,12 @@ public class GenSubDecrypt extends Decrypt
         add("SOME");
         add("TIME");
     }};
-    private String pt;
     // Key: letter in ciphertext, Value: most likely mapped letter based on frequency of occurrence
     ArrayList<Pair<Character, Character>> mappedLetters;
+    LinkedHashMap<Character, Character> mappedLetters2;
+    private String pt;
     private ArrayList<Pair<String, ArrayList<String>>> mostSimilaritiesForEachWord;
     private ArrayList<Pair<String, ArrayList<ArrayList<Pair<Character, Character>>>>> mostSimilaritiesForEachWordMappings;
-    HashMap<Character, Character> mappedLetters2;
 
     public GenSubDecrypt(File tessFile, File cipherFile) throws IOException
     {
@@ -148,7 +148,10 @@ public class GenSubDecrypt extends Decrypt
         this.mappedLetters = new ArrayList<>();
         this.mostSimilaritiesForEachWord = new ArrayList<>();
         this.mostSimilaritiesForEachWordMappings = new ArrayList<>();
-        this.mappedLetters2 = new HashMap<>();
+        this.mappedLetters2 = new LinkedHashMap<Character, Character>()
+        {{
+            put('|', '|');
+        }};
     }
 
     /**
@@ -208,10 +211,136 @@ public class GenSubDecrypt extends Decrypt
         // Separate decrypted plaintext into potential words separated by '|'
         String[] separated = decryptedPlaintext.split("\\|");
         ArrayList<String> potentialWords = new ArrayList<>(Arrays.asList(separated));
-        // Check for any english words which already exist
-        setExistingWordsToLowerCase(potentialWords);
+
+        // Any English words found will be removed (hEr, add R=R to mappedLetters2)
         // Populate mostSimilaritiesForEachWord
-        for (int i = 1; i <= 4; i++) {
+        popMostSimilaritiesForEachWord(containsEnglishWords(potentialWords)); // TODO Move containsEnglishWords() to after popMostSimilaritiesForEachWord(), let the mappings happen first, then use containsEnglishWords() on line 280
+        // Remove duplicates from mostSimilaritiesForEachWord
+        mostSimilaritiesForEachWord = removeDuplicates(mostSimilaritiesForEachWord);
+        // Populate mostSimilaritiesForEachWordMappings
+        popMostSimilaritiesForEachWordMappings();
+
+        System.out.println();
+
+        for (int y = 0; y < mostSimilaritiesForEachWordMappings.get(0).getValue().size(); y++) {
+            for (int i = 0; i < mostSimilaritiesForEachWordMappings.size(); ) {
+                // Exit clauses
+                if (mostSimilaritiesForEachWordMappings.get(i).getValue().isEmpty()) {
+                    i++;
+                    continue;
+                }
+                ArrayList<Pair<Character, Character>> newLetterMappings = mostSimilaritiesForEachWordMappings.get(i).getValue().get(0);
+                if (newLetterMappings.isEmpty()) {
+                    i++;
+                    continue;
+                }
+                for (Pair<Character, Character> pair : newLetterMappings) {
+                    if (mappedLetters2.containsKey(pair.getKey()) || mappedLetters2.containsValue(pair.getValue())) {
+                        i++;
+                        continue;
+                    }
+                }
+
+                System.out.println();
+
+                // Added [R=A] to mappedLetters2
+                for (int j = 0; j < newLetterMappings.size(); j++) {
+                    Pair<Character, Character> pair = newLetterMappings.get(j);
+                    mappedLetters2.put(pair.getKey(), pair.getValue());
+                }
+                // Gen newPotential Words, using new letter mapping such as [R=A]
+                ArrayList<String> newPotentialWords = new ArrayList<>();
+                // Alter all keys in mostSimilaritiesForEachWord
+                for (int j = 0; j < mostSimilaritiesForEachWord.size(); j++) {
+                    char[] aWordCA = mostSimilaritiesForEachWord.get(j).getKey().toCharArray();
+                    String newWord = "";
+                    for (int k = 0; k < aWordCA.length; k++) {
+                        if (mappedLetters2.containsKey(aWordCA[k])) {
+                            newWord += Character.toLowerCase(mappedLetters2.get(aWordCA[k]));
+                            System.out.println();
+                        } else {
+                            newWord += aWordCA[k];
+                        }
+                    }
+                    if (!allLowerCase(newWord)) {
+                        newPotentialWords.add(newWord);
+                    }
+                }
+
+                System.out.println();
+
+                // Populate mostSimilaritiesForEachWord
+                popMostSimilaritiesForEachWord(newPotentialWords);
+
+                System.out.println();
+
+                // Populate mostSimilaritiesForEachWordMappings
+                popMostSimilaritiesForEachWordMappings();
+
+                System.out.println();
+
+                i = 0;
+            }
+        }
+        System.out.println();
+        return pt;
+    }
+
+    // Returns new potential words and adds to mappedLetters2 any letter used in an english word
+    private ArrayList<String> containsEnglishWords(ArrayList<String> potentialWords)
+    {
+        ArrayList<String> nonEnglishPotentialWords = new ArrayList<>();
+        for (int i = 0; i < potentialWords.size(); i++) {
+            String aWord = potentialWords.get(i);
+            if (aWord.length() == 1) {
+                if (ENGLISH_ONE_LETTER_WORDS.contains(aWord.toUpperCase())) {
+                    mappedLetters2.put(Character.toUpperCase(aWord.charAt(0)), Character.toUpperCase(aWord.charAt(0)));
+                } else {
+                    nonEnglishPotentialWords.add(aWord);
+                }
+            } else if (aWord.length() == 2) {
+                if (ENGLISH_TWO_LETTER_WORDS.contains(aWord.toUpperCase())) {
+                    char[] aWordCA = aWord.toCharArray();
+                    for (int j = 0; j < aWordCA.length; j++) {
+                        if (Character.isUpperCase(aWordCA[j])) {
+                            mappedLetters2.put(aWordCA[j], aWordCA[j]);
+                        }
+                    }
+                } else {
+                    nonEnglishPotentialWords.add(aWord);
+                }
+            } else if (aWord.length() == 3) {
+                if (ENGLISH_THREE_LETTER_WORDS.contains(aWord.toUpperCase())) {
+                    char[] aWordCA = aWord.toCharArray();
+                    for (int j = 0; j < aWordCA.length; j++) {
+                        if (Character.isUpperCase(aWordCA[j])) {
+                            mappedLetters2.put(aWordCA[j], aWordCA[j]);
+                        }
+                    }
+                } else {
+                    nonEnglishPotentialWords.add(aWord);
+                }
+            } else if (aWord.length() == 4) {
+                if (ENGLISH_FOUR_LETTER_WORDS.contains(aWord.toUpperCase())) {
+                    char[] aWordCA = aWord.toCharArray();
+                    for (int j = 0; j < aWordCA.length; j++) {
+                        if (Character.isUpperCase(aWordCA[j])) {
+                            mappedLetters2.put(aWordCA[j], aWordCA[j]);
+                        }
+                    }
+                } else {
+                    nonEnglishPotentialWords.add(aWord);
+                }
+            }
+        }
+        return nonEnglishPotentialWords;
+    }
+
+    // Populate mostSimilaritiesForEachWord
+    private void popMostSimilaritiesForEachWord(ArrayList<String> potentialWords)
+    {
+        mostSimilaritiesForEachWord.clear();
+        for (int i = 1; i <= 4; i++) { // 1 letter words, then 2, then 3, then 4
             for (int j = 0; j < potentialWords.size(); j++) {
                 String potentialWord = potentialWords.get(j);
                 if (potentialWord.length() == i) { // 1 letter words, then 2, then 3, then 4
@@ -219,9 +348,11 @@ public class GenSubDecrypt extends Decrypt
                 }
             }
         }
-        // Remove duplicates from mostSimilaritiesForEachWord
-        mostSimilaritiesForEachWord = removeDuplicates(mostSimilaritiesForEachWord);
-        // Populate mostSimilaritiesForEachWordMappings
+    }
+
+    private void popMostSimilaritiesForEachWordMappings()
+    {
+        mostSimilaritiesForEachWordMappings.clear();
         for (int i = 0; i < mostSimilaritiesForEachWord.size(); i++) {
             Pair<String, ArrayList<String>> mostSimilaritiesForAWord = mostSimilaritiesForEachWord.get(i);
             if (mostSimilaritiesForAWord.getKey().length() == 1) { // 1 letter word
@@ -230,84 +361,51 @@ public class GenSubDecrypt extends Decrypt
                 ArrayList<ArrayList<Pair<Character, Character>>> tmpArray = new ArrayList<>();
                 for (int j = 0; j < mostSimilaritiesForAWord.getValue().size(); j++) {
                     int finalJ = j;
-                    tmpArray.add(new ArrayList<Pair<Character, Character>>(){{add(new Pair<>(letterBeingMapped.charAt(0), newLetterMappings.get(finalJ).charAt(0)));}});
+                    tmpArray.add(new ArrayList<Pair<Character, Character>>()
+                    {{
+                        add(new Pair<>(letterBeingMapped.charAt(0), newLetterMappings.get(finalJ).charAt(0)));
+                    }});
                 }
                 mostSimilaritiesForEachWordMappings.add(new Pair<>(letterBeingMapped, new ArrayList<>(tmpArray)));
             } else { // 2, 3 and 4 letter words
                 char[] wordBeingMapped = mostSimilaritiesForAWord.getKey().toCharArray();
-                ArrayList<String> newLetterMappings = mostSimilaritiesForAWord.getValue();
+                ArrayList<String> aWord = mostSimilaritiesForAWord.getValue();
                 ArrayList<ArrayList<Pair<Character, Character>>> tmpArray = new ArrayList<>();
-                for (int j = 0; j < newLetterMappings.size(); j++) {
+                for (int j = 0; j < aWord.size(); j++) {
                     ArrayList<Pair<Character, Character>> singleArray = new ArrayList<>(); // All mappings for PE => BE
-                    char[] wordBeingMappedTo = newLetterMappings.get(j).toCharArray();
+                    char[] wordBeingMappedTo = aWord.get(j).toCharArray();
                     for (int k = 0; k < wordBeingMapped.length; k++) {
-                        System.out.println();
-                        if (wordBeingMapped[k] != wordBeingMappedTo[k]) {
+                        if (wordBeingMapped[k] != wordBeingMappedTo[k] && Character.isUpperCase(wordBeingMapped[k])) {
                             singleArray.add(new Pair<>(wordBeingMapped[k], wordBeingMappedTo[k]));
                         }
                     }
-                    tmpArray.add(singleArray);
+                    System.out.println();
+                    // Check if singleArray keys and values are unique
+                    if (singleArray.size() > 1) {
+                        HashMap<Character, Character> tmpMap = new HashMap<>();
+                        for (int k = 0; k < singleArray.size(); k++) {
+                            tmpMap.put(singleArray.get(k).getKey(), singleArray.get(k).getValue());
+                        }
+                        // [E = L, E = N] - do not add to tmpArray
+                        if (tmpMap.size() < singleArray.size()) {
+                            continue;
+                        }
+                        // [E = L, N = L] - do not add to tmpArray
+                        Set<Character> values = new HashSet<>(tmpMap.values());
+                        if (values.size() == singleArray.size()) {
+                            tmpArray.add(singleArray);
+                        }
+                    } else {
+                        tmpArray.add(singleArray);
+                    }
                 }
                 mostSimilaritiesForEachWordMappings.add(new Pair<>(mostSimilaritiesForAWord.getKey(), new ArrayList<>(tmpArray)));
-            }
-        }
-        System.out.println();
-        // Start work out actual letter mappings, mappedLetters2
-        boolean succesfulPath = false;
-        while (!succesfulPath) {
-            HashMap<Character, Character> tmpMappedLetters2 = new HashMap<>();
-            for (int i = 0; i < mostSimilaritiesForEachWordMappings.size(); i++) {
-                System.out.println();
-            }
-        }
-        System.out.println();
-        return pt;
-    }
-
-    // Any words already existing of length 1, 2 or 3 in potentialWords, set toLowerCase.
-    private void setExistingWordsToLowerCase(ArrayList<String> potentialWords)
-    {
-        for (int i = 1; i <= 4; i++) {
-            for (int j = 0; j < potentialWords.size(); j++) {
-                if (i == 1) {
-                    if (ENGLISH_ONE_LETTER_WORDS.contains(potentialWords.get(j))) {
-                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
-                        potentialWords.set(j, lowerCaseTmp);
-                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
-                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
-                        }
-                    }
-                } else if (i == 2) {
-                    if (ENGLISH_TWO_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
-                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
-                        potentialWords.set(j, lowerCaseTmp);
-                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
-                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
-                        }
-                    }
-                } else if (i == 3) {
-                    if (ENGLISH_THREE_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
-                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
-                        potentialWords.set(j, lowerCaseTmp);
-                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
-                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
-                        }
-                    }
-                } else if (i == 4) {
-                    if (ENGLISH_FOUR_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
-                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
-                        potentialWords.set(j, lowerCaseTmp);
-                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
-                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
-                        }
-                    }
-                }
             }
         }
     }
 
     // Function to remove duplicates from an ArrayList.
-    public <T> ArrayList<T> removeDuplicates(ArrayList<T> list)
+    private <T> ArrayList<T> removeDuplicates(ArrayList<T> list)
     {
         // Create a new ArrayList
         ArrayList<T> newList = new ArrayList<>();
@@ -325,37 +423,47 @@ public class GenSubDecrypt extends Decrypt
     private void mostSimilarWord(String possibleWord)
     {
         if (possibleWord.length() == 1) {
-            mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, ENGLISH_ONE_LETTER_WORDS));
+            if (!ENGLISH_ONE_LETTER_WORDS.contains(possibleWord.toUpperCase())) {
+                mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, ENGLISH_ONE_LETTER_WORDS));
+            } else {
+                mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, new ArrayList<>()));
+            }
         } else if (possibleWord.length() == 2) {
             // If the word is lowerCase already, its an english word - keep
-            if (!allLowerCase(possibleWord)) {
-                HashMap<String, Double> similarities = new HashMap<>();
-                for (int i = 0; i < ENGLISH_TWO_LETTER_WORDS.size(); i++) {
-                    String word = ENGLISH_TWO_LETTER_WORDS.get(i);
-                    similarities.put(word, similarity(possibleWord, word));
-                }
-                genMostSimilarities(possibleWord, similarities);
+//            if (!allLowerCase(possibleWord)) {
+            LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
+            for (int i = 0; i < ENGLISH_TWO_LETTER_WORDS.size(); i++) {
+                String word = ENGLISH_TWO_LETTER_WORDS.get(i);
+//                    if (matchesAllLowerCaseLetters(possibleWord, word)) {
+                similarities.put(word, similarity(possibleWord.toUpperCase(), word));
+//                    }
             }
+            genMostSimilarities(possibleWord, similarities);
+//            }
         } else if (possibleWord.length() == 3) {
             // If the word is lowerCase already, its an english word - keep
-            if (!allLowerCase(possibleWord)) {
-                HashMap<String, Double> similarities = new HashMap<>();
-                for (int i = 0; i < ENGLISH_THREE_LETTER_WORDS.size(); i++) {
-                    String word = ENGLISH_THREE_LETTER_WORDS.get(i);
-                    similarities.put(word, similarity(possibleWord, word));
-                }
-                genMostSimilarities(possibleWord, similarities);
+//            if (!allLowerCase(possibleWord)) {
+            LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
+            for (int i = 0; i < ENGLISH_THREE_LETTER_WORDS.size(); i++) {
+                String word = ENGLISH_THREE_LETTER_WORDS.get(i);
+//                    if (matchesAllLowerCaseLetters(possibleWord, word)) {
+                similarities.put(word, similarity(possibleWord.toUpperCase(), word));
+//                    }
             }
+            genMostSimilarities(possibleWord, similarities);
+//            }
         } else if (possibleWord.length() == 4) {
             // If the word is lowerCase already, its an english word - keep
-            if (!allLowerCase(possibleWord)) {
-                HashMap<String, Double> similarities = new HashMap<>();
-                for (int i = 0; i < ENGLISH_FOUR_LETTER_WORDS.size(); i++) {
-                    String word = ENGLISH_FOUR_LETTER_WORDS.get(i);
-                    similarities.put(word, similarity(possibleWord, word));
-                }
-                genMostSimilarities(possibleWord, similarities);
+//            if (!allLowerCase(possibleWord)) {
+            LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
+            for (int i = 0; i < ENGLISH_FOUR_LETTER_WORDS.size(); i++) {
+                String word = ENGLISH_FOUR_LETTER_WORDS.get(i);
+//                    if (matchesAllLowerCaseLetters(possibleWord, word)) {
+                similarities.put(word, similarity(possibleWord.toUpperCase(), word));
+//                    }
             }
+            genMostSimilarities(possibleWord, similarities);
+//            }
         }
     }
 
@@ -372,17 +480,71 @@ public class GenSubDecrypt extends Decrypt
         return allLowerCase;
     }
 
-    // Populate mostSimilaritiesForEachWord.
-    private void genMostSimilarities(String possibleWord, HashMap<String, Double> similarities)
+    // Checks to see is all characters in a string are all upper case.
+    private boolean allUpperCase(String str)
     {
-        double mostSimilarPerc = similarities.entrySet().stream().max((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue())).get().getValue();
-        ArrayList<String> mostSimilarities = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : similarities.entrySet()) {
-            if (entry.getValue().equals(mostSimilarPerc)) {
-                mostSimilarities.add(entry.getKey());
+        boolean allLowerCase = true;
+        char[] charArray = str.toCharArray();
+        for (int i = 0; i < charArray.length; i++) {
+            if (!Character.isUpperCase(charArray[i])) {
+                return false;
             }
         }
-        mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, mostSimilarities));
+        return allLowerCase;
+    }
+
+    // Populate mostSimilaritiesForEachWord.
+    private void genMostSimilarities(String possibleWord, LinkedHashMap<String, Double> similarities)
+    {
+        ArrayList<String> sortedSimilarWords = new ArrayList<>(sortByValue(similarities));
+        if (!allUpperCase(possibleWord)) {
+            // Generate indexes of possibleWord which need checking due to being lowerCase
+            ArrayList<Integer> lowerCaseIndexes = new ArrayList<>();
+            char[] possibleWordCA = possibleWord.toCharArray();
+            for (int i = 0; i < possibleWordCA.length; i++) {
+                if (Character.isLowerCase(possibleWordCA[i])) {
+                    lowerCaseIndexes.add(i);
+                }
+            }
+            // Generate newSortedList based on indexes of lowerCase letters in possibleWord
+            ArrayList<String> newSortedList = new ArrayList<>();
+            for (int i = 0; i < sortedSimilarWords.size(); i++) {
+                boolean toAdd = true;
+                for (Integer index : lowerCaseIndexes) {
+                    String possibleWordLetter = possibleWord.substring(index, index + 1);
+                    String sortedSimilarWordLetter = sortedSimilarWords.get(i).substring(index, index + 1);
+                    if (!possibleWordLetter.toUpperCase().equals(sortedSimilarWordLetter)) {
+                        toAdd = false;
+                        break;
+                    }
+                }
+                if (toAdd) {
+                    newSortedList.add(sortedSimilarWords.get(i));
+                }
+            }
+//            for (int i = 0; i < sortedSimilarWords.size(); i++) {
+//                for (int j = 0; j < possibleWord.length(); j++) {
+//                    char p = possibleWord.charAt(j);
+//                    char b = sortedSimilarWords.get(i).charAt(j);
+//                    if (Character.isLowerCase(p) && (Character.toUpperCase(p) == b)) {
+//                        newSortedList.add(sortedSimilarWords.get(i));
+//                    }
+//                }
+//            }
+            mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, newSortedList));
+        } else {
+            mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, sortedSimilarWords));
+        }
+    }
+
+    // Sort HashMap by values
+    private Set<String> sortByValue(LinkedHashMap<String, Double> hm)
+    {
+        //LinkedHashMap preserve the ordering of elements in which they are inserted
+        LinkedHashMap<String, Double> reverseSortedMap = new LinkedHashMap<>();
+        //Use Comparator.reverseOrder() for reverse ordering
+        hm.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).forEachOrdered(x -> reverseSortedMap.put(x.getKey(), x.getValue()));
+        return reverseSortedMap.keySet();
     }
 
     // Calculates the similarity (a number within 0 and 1) between two strings.
@@ -431,8 +593,25 @@ public class GenSubDecrypt extends Decrypt
         return costs[s2.length()];
     }
 
+    // ---------------------------------------------------- Disused functions \/
+
+    private boolean matchesAllLowerCaseLetters(String possibleWord, String word)
+    {
+        char[] possibleWordsCA = possibleWord.toCharArray();
+        char[] wordCA = word.toCharArray();
+        for (int i = 0; i < possibleWordsCA.length; i++) {
+            if (Character.isLowerCase(possibleWordsCA[i])) {
+                if (Character.toUpperCase(possibleWordsCA[i]) != wordCA[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     // Replace all letters of certain char in each potential word with its corresponding mapping in mappedLetters2.
-    private void replaceLetter(char ch, ArrayList<String> potentialWords, HashMap<Character, Character> mappedLetters2)
+    private void replaceLetter(char ch, ArrayList<
+            String> potentialWords, HashMap<Character, Character> mappedLetters2)
     {
         for (int i = 0; i < potentialWords.size(); i++) {
             char[] potentialWordChars = potentialWords.get(i).toCharArray();
@@ -442,6 +621,98 @@ public class GenSubDecrypt extends Decrypt
                 }
             }
             potentialWords.set(i, String.valueOf(potentialWordChars));
+        }
+    }
+
+    private void makeAllMappedLetters2OccurencesLowerCase()
+    {
+        for (int i = 0; i < mostSimilaritiesForEachWord.size(); i++) {
+            String newWord = "";
+            char[] wordToTest = mostSimilaritiesForEachWord.get(i).getKey().toCharArray();
+            for (int j = 0; j < wordToTest.length; j++) {
+                if (mappedLetters2.containsKey(wordToTest[j])) {
+                    newWord += Character.toLowerCase(wordToTest[j]);
+                } else {
+                    newWord += wordToTest[j];
+                }
+            }
+            String aWord = mostSimilaritiesForEachWord.get(i).getKey();
+            if (!newWord.equals(aWord)) {
+                ArrayList<String> similarWords = mostSimilaritiesForEachWord.get(i).getValue();
+                ArrayList<String> newSimilarWords = new ArrayList<>();
+                char[] newWordCA = newWord.toCharArray();
+                for (String similarWord : similarWords) {
+                    char[] similarWordCA = similarWord.toCharArray();
+                    boolean toAdd = true;
+                    for (int j = 0; j < similarWordCA.length; j++) {
+                        System.out.println();
+                        if (Character.isLowerCase(newWordCA[j]) && (Character.toUpperCase(newWordCA[j]) != similarWordCA[j])) {
+                            toAdd = false;
+                        }
+                    }
+                    if (toAdd) {
+                        newSimilarWords.add(similarWord);
+                    }
+                }
+                mostSimilaritiesForEachWord.set(i, new Pair<>(newWord, newSimilarWords));
+            }
+        }
+    }
+
+    // E=O, [[T=O, Y=U], [G=P, D=N]]
+    private boolean containsKeyValue(Pair<Character, Character> pairToTest, ArrayList<Pair<Character, Character>> list)
+    {
+        char keyToTest = pairToTest.getKey();
+        char valueToTest = pairToTest.getValue();
+        for (Pair<Character, Character> pairFromList : list) {
+            char keyFromList = pairFromList.getKey();
+            char valueFromList = pairFromList.getValue();
+            if (keyToTest == keyFromList || valueToTest == valueFromList) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Any words already existing of length 1, 2 or 3 in potentialWords, set toLowerCase.
+    private void setExistingWordsToLowerCase(ArrayList<String> potentialWords)
+    {
+        for (int i = 1; i <= 4; i++) {
+            for (int j = 0; j < potentialWords.size(); j++) {
+                if (i == 1) {
+                    if (ENGLISH_ONE_LETTER_WORDS.contains(potentialWords.get(j))) {
+                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
+                        potentialWords.set(j, lowerCaseTmp);
+                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
+                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
+                        }
+                    }
+                } else if (i == 2) {
+                    if (ENGLISH_TWO_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
+                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
+                        potentialWords.set(j, lowerCaseTmp);
+                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
+                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
+                        }
+                    }
+                } else if (i == 3) {
+                    if (ENGLISH_THREE_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
+                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
+                        potentialWords.set(j, lowerCaseTmp);
+                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
+                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
+                        }
+                    }
+                } else if (i == 4) {
+                    if (ENGLISH_FOUR_LETTER_WORDS.contains(potentialWords.get(j).toUpperCase())) {
+                        String lowerCaseTmp = potentialWords.get(j).toLowerCase();
+                        potentialWords.set(j, lowerCaseTmp);
+                        for (int k = 0; k < lowerCaseTmp.length(); k++) {
+                            mappedLetters2.put(Character.toUpperCase(lowerCaseTmp.charAt(k)), Character.toUpperCase(lowerCaseTmp.charAt(k)));
+                        }
+                    }
+                }
+            }
         }
     }
 }
