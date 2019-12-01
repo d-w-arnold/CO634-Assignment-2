@@ -478,18 +478,22 @@ public class GenSubDecrypt extends Decrypt
                         for (char charAlpha : charAlphabet) {
                             charAlphabetString += charAlpha;
                         }
-                        System.out.println("Character Alphabet: " + charAlphabetString);
-                        // TODO Sort out displaying the correct character mappings
-//                        HashMap<Character, Character> fullMappedLetters = new HashMap<Character, Character>()
-//                        {{
-//                            putAll(mappedLetters2);
-//                            putAll(tmpHM);
-//                        }};
-//                        String finalMappedString = "";
-//                        for (char mappedStringChar : mappedString2.toCharArray()) {
-//                            finalMappedString += fullMappedLetters.get(mappedStringChar);
-//                        }
-//                        System.out.println("Character Mappings: " + finalMappedString);
+                        System.out.println("Ciphertext Character Alphabet: " + charAlphabetString);
+                        HashMap<Character, Character> fullMappedLetters = new HashMap<Character, Character>()
+                        {{
+                            putAll(mappedLetters2);
+                            putAll(tmpHM);
+                        }};
+                        String finalMappedString = "";
+                        for (char charAlpha : charAlphabet) {
+                            for (Pair<Character, Character> pair : mappedLetters) {
+                                if (pair.getKey() == charAlpha) {
+                                    finalMappedString += fullMappedLetters.get(pair.getValue());
+                                }
+                            }
+                        }
+                        System.out.println("------------------------------ " + "↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
+                        System.out.println("Plaintext Character Mappings:  " + finalMappedString);
                         System.out.println();
                         return pt;
                     }
