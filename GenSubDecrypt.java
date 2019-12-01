@@ -185,12 +185,16 @@ public class GenSubDecrypt extends Decrypt
         add("STH");
         add("MEN");
     }};
-    // Key: letter in ciphertext, Value: most likely mapped letter based on frequency of occurrence
-    ArrayList<Pair<Character, Character>> mappedLetters;
-    LinkedHashMap<Character, Character> mappedLetters2;
-    LinkedHashMap<Character, Character> mappedLetters2DuplicateKeyValue;
     private String pt;
+    // Key: letter in ciphertext, Value: most likely mapped letter based on frequency of occurrence
+    private ArrayList<Pair<Character, Character>> mappedLetters;
+    // Key: letter in part decrypted ciphertext from just letter frequency analysis, Value: most likely mapped letter based on word frequency analysis
+    private LinkedHashMap<Character, Character> mappedLetters2;
+    // Key: letter in part decrypted ciphertext from just letter frequency analysis, Value: a letter mapping to itself based of word frequency analysis
+    private LinkedHashMap<Character, Character> mappedLetters2DuplicateKeyValue;
+    // For each word in the part decrypted ciphertext, records the most common english words of the same length
     private ArrayList<Pair<String, ArrayList<String>>> mostSimilaritiesForEachWord;
+    // For each word in the mostSimilaritiesForEachWord, records the necessary letter mappings to acquire to each word
     private ArrayList<Pair<String, ArrayList<ArrayList<Pair<Character, Character>>>>> mostSimilaritiesForEachWordMappings;
 
     public GenSubDecrypt(File tessFile, File cipherFile) throws IOException
@@ -226,40 +230,41 @@ public class GenSubDecrypt extends Decrypt
                 return 1;
             }
         });
-        // Generate String representation of character mappings
+        // Generate String representation of initial character mappings
         for (int i = 0; i < characterCounts.size(); i++) {
             mappedLetters.add(new Pair<>(characterCounts.get(i).getKey(), ENGLISH_FREQUENCY_ORDER.get(i)));
         }
-        // Generate mappedLetters String for decryption
+        // Generate mappedString - the current letter mappings after letter frequency analysis
         String mappedString = "";
-        for (int i = 0; i < characterCounts.size(); i++) {
-            mappedString += characterCounts.get(i).getKey();
+        for (Pair<Character, Integer> characterCount : characterCounts) {
+            mappedString += characterCount.getKey();
         }
-        // Generate decrypted plaintext from mappedLetters
+        // Generate initial decrypted plaintext from mappedLetters
         String decryptedPlaintext = "";
         for (char ctChar : ciphertext.toCharArray()) {
-            for (int i = 0; i < mappedLetters.size(); i++) {
-                if (mappedLetters.get(i).getKey() == ctChar) {
-                    decryptedPlaintext += mappedLetters.get(i).getValue();
+            for (Pair<Character, Character> mappedLetter : mappedLetters) {
+                if (mappedLetter.getKey() == ctChar) {
+                    decryptedPlaintext += mappedLetter.getValue();
                 }
             }
         }
         pt = decryptedPlaintext;
-
-        // Generate mappedLetter2 and mappedLetter2DuplicateKeyValue using most common 1, 2, 3 and 4 letter words
-        // Separate decrypted plaintext into potential words separated by '|'
+        // Separate decrypted plaintext into potentialWords separated by '|',
+        // as '|' can represent a space, this will be the most frequently
+        // occurring character in the part decrypted plaintext
         String[] separated = pt.split("\\|");
         ArrayList<String> potentialWords = new ArrayList<>(Arrays.asList(separated));
-        // Any English words found will be removed (hEr, add R=R to mappedLetters2)
-        // Populate mostSimilaritiesForEachWord
+        // Populate mostSimilaritiesForEachWord, any English words found will be removed
+        // and their letter mappings added to mappedLetters2DuplicateKeyValue
         popMostSimilaritiesForEachWord(containsEnglishWords(potentialWords));
         // Remove duplicates from mostSimilaritiesForEachWord
         mostSimilaritiesForEachWord = removeDuplicates(mostSimilaritiesForEachWord);
         // Populate mostSimilaritiesForEachWordMappings
         popMostSimilaritiesForEachWordMappings();
+        // Generate mappedLetter2 and mappedLetter2DuplicateKeyValue using most common 1, 2, 3 and 4 letter words - word frequency analysis
         // TODO Add handling for if there are 2x one letter words, not just 1x (R = [[R=A], [R=I]])
         for (int i = 0; i < mostSimilaritiesForEachWordMappings.size(); ) {
-            // Exit clauses
+            // Clauses for discarding words in mostSimilaritiesForEachWord and mostSimilaritiesForEachWordMappings
             if (mostSimilaritiesForEachWordMappings.get(i).getValue().isEmpty()) {
                 mostSimilaritiesForEachWord.remove(i);
                 mostSimilaritiesForEachWordMappings.remove(i);
@@ -277,10 +282,9 @@ public class GenSubDecrypt extends Decrypt
                 mostSimilaritiesForEachWordMappings.remove(i);
                 continue;
             }
-            // Added [R=A] to mappedLetters2
+            // Added some found letter mappings to mappedLetters2
             boolean forceContinue = false;
-            for (int j = 0; j < newLetterMappings.size(); j++) {
-                Pair<Character, Character> pair = newLetterMappings.get(j);
+            for (Pair<Character, Character> pair : newLetterMappings) {
                 if (!mappedLetters2.containsKey(pair.getKey()) && !mappedLetters2.containsValue(pair.getValue())) {
                     mappedLetters2.put(pair.getKey(), pair.getValue());
                 } else {
@@ -292,11 +296,13 @@ public class GenSubDecrypt extends Decrypt
             if (forceContinue) {
                 continue;
             }
-            // Populate mostSimilaritiesForEachWord
+            // Using the new letter mappings, generate new potentialWords,
+            // and populate mostSimilaritiesForEachWord
             popMostSimilaritiesForEachWord(genNewPotentialWords());
-            // Populate mostSimilaritiesForEachWordMappings
+            // Populate mostSimilaritiesForEachWordMappings again as well
             popMostSimilaritiesForEachWordMappings();
-            // Remove from mappedLetters2 where key and value are equal - necessary and could contain incorrect mappings Y => Y
+            // Move from mappedLetters2 to mappedLetters2DuplicateKeyValue any entries where
+            // the key and value are equal
             for (char charAlpha : charAlphabet) {
                 if (mappedLetters2.containsKey(charAlpha) && mappedLetters2.get(charAlpha).equals(charAlpha)) {
                     mappedLetters2.remove(charAlpha);
@@ -305,7 +311,8 @@ public class GenSubDecrypt extends Decrypt
             }
             i = 0;
         }
-        // Remove from mappedLetters2 where mappedLetters2DuplicateKeyValue containsKey of value
+        // Remove from mappedLetters2 where the value of an entry features as a key
+        // in mappedLetters2DuplicateKeyValue
         for (char charAlpha : charAlphabet) {
             if (mappedLetters2.containsKey(charAlpha) && mappedLetters2DuplicateKeyValue.containsKey(mappedLetters2.get(charAlpha))) {
                 mappedLetters2.remove(charAlpha);
@@ -313,17 +320,11 @@ public class GenSubDecrypt extends Decrypt
         }
         // Combine mappedLetters2 and mappedLetters2DuplicateKeyValues
         mappedLetters2.putAll(mappedLetters2DuplicateKeyValue);
-
-        // Generate mappedString2
+        // Generate mappedString2 - the current letter mappings after letter and word frequency analysis
         String mappedString2 = "";
         char[] mappedStringCA = mappedString.toCharArray();
-        for (int i = 0; i < mappedStringCA.length; i++) {
-            char letter = mappedStringCA[i];
-            if (mappedLetters2.containsKey(letter)) {
-                mappedString2 += mappedLetters2.get(letter);
-            } else {
-                mappedString2 += letter;
-            }
+        for (char letter : mappedStringCA) {
+            mappedString2 += mappedLetters2.getOrDefault(letter, letter);
         }
         // Generate new decrypted plaintext from mappedLetters2
         String decryptedPlaintext2 = "";
@@ -336,7 +337,8 @@ public class GenSubDecrypt extends Decrypt
         }
         pt = decryptedPlaintext2;
 
-        // Generate extendedMappedLetters, containing what the remaining letters not featuring in mappedLetters2 could be
+        // For any letters not yet featuring as keys in mappedLetters2, their letter mappings are still unknown
+        // Generate potential letter mappings for all those letters
         ArrayList<Pair<Character, Integer>> mappedString2CharacterCounts = new ArrayList<>();
         genCharacterCounts(mappedString2, mappedString2CharacterCounts);
         ArrayList<Pair<Character, Integer>> mappedString2CharacterCountsWithoutMappedLetters2Keys = new ArrayList<>();
@@ -376,38 +378,30 @@ public class GenSubDecrypt extends Decrypt
                 permuOnes = listPermutations(tmp);
             }
         }
-
-        // TODO Try each mapping in extendedMappedLetters2,
-        //  choose mapping for each letter which rears a decrypted plaintext with the most
-        //  digraphs, trigraphs, most common doubles occurrences
-
-        // Generate zeroLetterMappings
+        // Generate zeroLetterMappings, if a letter appears twice in mappedString2,
+        // it will map to (for mappedLetters2) one of the letters not present in the mappedString2
         ArrayList<HashMap<Character, Character>> zeroLetterMappings = new ArrayList<>();
-        for (int i = 0; i < permuZeros.size(); i++) {
+        for (ArrayList<Character> permuZero : permuZeros) {
             HashMap<Character, Character> tmpHM = new HashMap<>();
-            ArrayList<Character> aPermu = permuZeros.get(i);
-            for (int j = 0; j < aPermu.size(); j++) {
-                tmpHM.put(zeroLetters.get(j), aPermu.get(j));
+            for (int j = 0; j < permuZero.size(); j++) {
+                tmpHM.put(zeroLetters.get(j), permuZero.get(j));
             }
             zeroLetterMappings.add(tmpHM);
         }
-
-        // Generate oneLetterMappings
+        // Generate oneLetterMappings, if a letter appears once in mappedString2 and does not
+        // feature as a key in mappedLetters2, it will map to one of the other letters appearing once
+        // in mappedString2 which also does not feature in mappedLetters2 - including itself
         ArrayList<HashMap<Character, Character>> oneLetterMappings = new ArrayList<>();
-        for (int i = 0; i < permuOnes.size(); i++) {
+        for (ArrayList<Character> permuOne : permuOnes) {
             HashMap<Character, Character> tmpHM = new HashMap<>();
-            ArrayList<Character> aPermu = permuOnes.get(i);
-            for (int j = 0; j < aPermu.size(); j++) {
-                tmpHM.put(oneLetters.get(j), aPermu.get(j));
+            for (int j = 0; j < permuOne.size(); j++) {
+                tmpHM.put(oneLetters.get(j), permuOne.get(j));
             }
             oneLetterMappings.add(tmpHM);
         }
-
-        HashMap<Character, Character> extendedMappedLetters2 = new HashMap<>();
-        // Try each combination of zeroLetterMappings and oneLetterMappings
-        // TODO Change this to check for digraphs and trigraphs occurences,
-        //  most occurrences means the most likely combination of zeroLetterMappings and oneLetterMappings
-        //  to give the extendedMappedLetters2.
+        // Try each combination of zeroLetterMappings and oneLetterMappings, and record
+        // how many digraph and trigraph occurrences each combination of letter mappings yields
+        HashMap<HashMap<Character, Character>, Integer> digraphTrigraphOccurrences = new HashMap<>();
         for (HashMap<Character, Character> zeroHM : zeroLetterMappings) {
             for (HashMap<Character, Character> oneHM : oneLetterMappings) {
                 HashMap<Character, Character> tmpHM = new HashMap<Character, Character>()
@@ -424,33 +418,84 @@ public class GenSubDecrypt extends Decrypt
                         newTmpPT += tmpPTChar;
                     }
                 }
-                if (tess.contains(newTmpPT.toUpperCase())) {
-                    extendedMappedLetters2.putAll(tmpHM);
-                    pt = newTmpPT.toUpperCase();
-                    System.out.println("Decrypted: " + pt);
-                    String charAlphabetString = "";
-                    for (char charAlpha : charAlphabet) {
-                        charAlphabetString += charAlpha;
+                newTmpPT = newTmpPT.toUpperCase();
+                int totalOccurrences = 0;
+                for (String digraph : ENGLISH_DIGRAPHS) {
+                    int lastIndex = 0;
+                    while (lastIndex != -1) {
+                        lastIndex = newTmpPT.indexOf(digraph, lastIndex);
+                        if (lastIndex != -1) {
+                            totalOccurrences++;
+                            lastIndex += digraph.length();
+                        }
                     }
-                    System.out.println("Character Alphabet: " + charAlphabetString);
-                    HashMap<Character, Character> fullMappedLetters = new HashMap<Character, Character>()
-                    {{
-                        putAll(mappedLetters2);
-                        putAll(extendedMappedLetters2);
-                    }};
-                    String finalMappedString = "";
-                    for (char mappedStringChar : mappedString.toCharArray()) {
-                        finalMappedString += fullMappedLetters.get(mappedStringChar);
+                }
+                for (String trigraph : ENGLISH_TRIGRAPHS) {
+                    int lastIndex = 0;
+                    while (lastIndex != -1) {
+                        lastIndex = newTmpPT.indexOf(trigraph, lastIndex);
+                        if (lastIndex != -1) {
+                            totalOccurrences++;
+                            lastIndex += trigraph.length();
+                        }
                     }
-                    System.out.println("Character Mappings: " + finalMappedString);
-                    System.out.println();
-                    return pt;
+                }
+                digraphTrigraphOccurrences.put(tmpHM, totalOccurrences);
+            }
+        }
+        // The value of the maximum number of occurrences of digraphs and trigraphs,
+        // for any combination(s) of zeroLetterMappings and oneLetterMappings
+        int maximum = digraphTrigraphOccurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getValue();
+        // If a combination of zeroLetterMappings and oneLetterMappings yields
+        // the maximum number of diagraph and trigraph occurrences,
+        // it a possibility for these remaining letter mappings to yield a correct english
+        // decrypted plaintext - try each one.
+        for (HashMap<Character, Character> zeroHM : zeroLetterMappings) {
+            for (HashMap<Character, Character> oneHM : oneLetterMappings) {
+                HashMap<Character, Character> tmpHM = new HashMap<Character, Character>()
+                {{
+                    putAll(zeroHM);
+                    putAll(oneHM);
+                }};
+                if (digraphTrigraphOccurrences.get(tmpHM) == maximum) {
+                    String tmpPT = pt;
+                    String newTmpPT = "";
+                    for (char tmpPTChar : tmpPT.toCharArray()) {
+                        if (Character.isUpperCase(tmpPTChar) && tmpHM.containsKey(tmpPTChar)) {
+                            newTmpPT += tmpHM.get(tmpPTChar);
+                        } else {
+                            newTmpPT += tmpPTChar;
+                        }
+                    }
+                    if (tess.contains(newTmpPT.toUpperCase())) {
+                        pt = newTmpPT.toUpperCase();
+                        System.out.println("Decrypted: " + pt);
+                        String charAlphabetString = "";
+                        for (char charAlpha : charAlphabet) {
+                            charAlphabetString += charAlpha;
+                        }
+                        System.out.println("Character Alphabet: " + charAlphabetString);
+                        // TODO Sort out displaying the correct character mappings
+//                        HashMap<Character, Character> fullMappedLetters = new HashMap<Character, Character>()
+//                        {{
+//                            putAll(mappedLetters2);
+//                            putAll(tmpHM);
+//                        }};
+//                        String finalMappedString = "";
+//                        for (char mappedStringChar : mappedString2.toCharArray()) {
+//                            finalMappedString += fullMappedLetters.get(mappedStringChar);
+//                        }
+//                        System.out.println("Character Mappings: " + finalMappedString);
+                        System.out.println();
+                        return pt;
+                    }
                 }
             }
         }
         return "";
     }
 
+    // Generates all permutations of an ArrayList containing chars
     private ArrayList<ArrayList<Character>> listPermutations(ArrayList<Character> list)
     {
         if (list.size() == 0) {
@@ -472,32 +517,33 @@ public class GenSubDecrypt extends Decrypt
         return returnMe;
     }
 
-    private void genCharacterCounts(String mappedString2, ArrayList<Pair<Character, Integer>> mappedString2CharacterCounts)
+    // For all letters on charAlphabet, count their occurrences and store in a provided list
+    private void genCharacterCounts(String st, ArrayList<Pair<Character, Integer>> list)
     {
         for (char charAlpha : charAlphabet) {
             int totalOccurrences = 0;
-            for (char mappedString2Char : mappedString2.toCharArray()) {
-                if (charAlpha == mappedString2Char) {
+            for (char stChar : st.toCharArray()) {
+                if (charAlpha == stChar) {
                     totalOccurrences++;
                 }
             }
-            mappedString2CharacterCounts.add(new Pair<>(charAlpha, totalOccurrences));
+            list.add(new Pair<>(charAlpha, totalOccurrences));
         }
     }
 
-    // Gen newPotential Words, using new letter mapping such as [R=A]
+    // Generate new potentialWords, using all letter mappings stored in mappedLetters2
     private ArrayList<String> genNewPotentialWords()
     {
         // Alter all keys in mostSimilaritiesForEachWord
         ArrayList<String> newPotentialWords = new ArrayList<>();
-        for (int j = 0; j < mostSimilaritiesForEachWord.size(); j++) {
-            char[] aWordCA = mostSimilaritiesForEachWord.get(j).getKey().toCharArray();
+        for (Pair<String, ArrayList<String>> stringArrayListPair : mostSimilaritiesForEachWord) {
+            char[] aWordCA = stringArrayListPair.getKey().toCharArray();
             String newWord = "";
-            for (int k = 0; k < aWordCA.length; k++) {
-                if (mappedLetters2.containsKey(aWordCA[k])) {
-                    newWord += Character.toLowerCase(mappedLetters2.get(aWordCA[k]));
+            for (char c : aWordCA) {
+                if (mappedLetters2.containsKey(c)) {
+                    newWord += Character.toLowerCase(mappedLetters2.get(c));
                 } else {
-                    newWord += aWordCA[k];
+                    newWord += c;
                 }
             }
             if (!allLowerCase(newWord)) {
@@ -511,8 +557,7 @@ public class GenSubDecrypt extends Decrypt
     private ArrayList<String> containsEnglishWords(ArrayList<String> potentialWords)
     {
         ArrayList<String> nonEnglishPotentialWords = new ArrayList<>();
-        for (int i = 0; i < potentialWords.size(); i++) {
-            String aWord = potentialWords.get(i);
+        for (String aWord : potentialWords) {
             if (aWord.length() == 1) {
                 if (ENGLISH_ONE_LETTER_WORDS.contains(aWord.toUpperCase())) {
                     mappedLetters2DuplicateKeyValue.put(Character.toUpperCase(aWord.charAt(0)), Character.toUpperCase(aWord.charAt(0)));
@@ -522,9 +567,9 @@ public class GenSubDecrypt extends Decrypt
             } else if (aWord.length() == 2) {
                 if (ENGLISH_TWO_LETTER_WORDS.contains(aWord.toUpperCase())) {
                     char[] aWordCA = aWord.toCharArray();
-                    for (int j = 0; j < aWordCA.length; j++) {
-                        if (Character.isUpperCase(aWordCA[j])) {
-                            mappedLetters2DuplicateKeyValue.put(aWordCA[j], aWordCA[j]);
+                    for (char c : aWordCA) {
+                        if (Character.isUpperCase(c)) {
+                            mappedLetters2DuplicateKeyValue.put(c, c);
                         }
                     }
                 } else {
@@ -533,9 +578,9 @@ public class GenSubDecrypt extends Decrypt
             } else if (aWord.length() == 3) {
                 if (ENGLISH_THREE_LETTER_WORDS.contains(aWord.toUpperCase())) {
                     char[] aWordCA = aWord.toCharArray();
-                    for (int j = 0; j < aWordCA.length; j++) {
-                        if (Character.isUpperCase(aWordCA[j])) {
-                            mappedLetters2DuplicateKeyValue.put(aWordCA[j], aWordCA[j]);
+                    for (char c : aWordCA) {
+                        if (Character.isUpperCase(c)) {
+                            mappedLetters2DuplicateKeyValue.put(c, c);
                         }
                     }
                 } else {
@@ -544,9 +589,9 @@ public class GenSubDecrypt extends Decrypt
             } else if (aWord.length() == 4) {
                 if (ENGLISH_FOUR_LETTER_WORDS.contains(aWord.toUpperCase())) {
                     char[] aWordCA = aWord.toCharArray();
-                    for (int j = 0; j < aWordCA.length; j++) {
-                        if (Character.isUpperCase(aWordCA[j])) {
-                            mappedLetters2DuplicateKeyValue.put(aWordCA[j], aWordCA[j]);
+                    for (char c : aWordCA) {
+                        if (Character.isUpperCase(c)) {
+                            mappedLetters2DuplicateKeyValue.put(c, c);
                         }
                     }
                 } else {
@@ -562,21 +607,20 @@ public class GenSubDecrypt extends Decrypt
     {
         mostSimilaritiesForEachWord.clear();
         for (int i = 1; i <= 4; i++) { // 1 letter words, then 2, then 3, then 4
-            for (int j = 0; j < potentialWords.size(); j++) {
-                String potentialWord = potentialWords.get(j);
-                if (potentialWord.length() == i) { // 1 letter words, then 2, then 3, then 4
+            for (String potentialWord : potentialWords) {
+                if (potentialWord.length() == i) {
                     mostSimilarWord(potentialWord);
                 }
             }
         }
     }
 
+    // Populate mostSimilaritiesForEachWordMappings
     private void popMostSimilaritiesForEachWordMappings()
     {
         mostSimilaritiesForEachWordMappings.clear();
-        for (int i = 0; i < mostSimilaritiesForEachWord.size(); i++) {
-            Pair<String, ArrayList<String>> mostSimilaritiesForAWord = mostSimilaritiesForEachWord.get(i);
-            if (mostSimilaritiesForAWord.getKey().length() == 1) { // 1 letter word
+        for (Pair<String, ArrayList<String>> mostSimilaritiesForAWord : mostSimilaritiesForEachWord) {
+            if (mostSimilaritiesForAWord.getKey().length() == 1) { // 1 letter words
                 String letterBeingMapped = mostSimilaritiesForAWord.getKey();
                 ArrayList<String> newLetterMappings = mostSimilaritiesForAWord.getValue();
                 ArrayList<ArrayList<Pair<Character, Character>>> tmpArray = new ArrayList<>();
@@ -592,25 +636,22 @@ public class GenSubDecrypt extends Decrypt
                 char[] wordBeingMapped = mostSimilaritiesForAWord.getKey().toCharArray();
                 ArrayList<String> aWord = mostSimilaritiesForAWord.getValue();
                 ArrayList<ArrayList<Pair<Character, Character>>> tmpArray = new ArrayList<>();
-                for (int j = 0; j < aWord.size(); j++) {
+                for (String s : aWord) {
                     ArrayList<Pair<Character, Character>> singleArray = new ArrayList<>(); // All mappings for PE => BE
-                    char[] wordBeingMappedTo = aWord.get(j).toCharArray();
+                    char[] wordBeingMappedTo = s.toCharArray();
                     for (int k = 0; k < wordBeingMapped.length; k++) {
                         if (wordBeingMapped[k] != wordBeingMappedTo[k] && Character.isUpperCase(wordBeingMapped[k])) {
                             singleArray.add(new Pair<>(wordBeingMapped[k], wordBeingMappedTo[k]));
                         }
                     }
-                    // Check if singleArray keys and values are unique
                     if (singleArray.size() > 1) {
                         HashMap<Character, Character> tmpMap = new HashMap<>();
-                        for (int k = 0; k < singleArray.size(); k++) {
-                            tmpMap.put(singleArray.get(k).getKey(), singleArray.get(k).getValue());
+                        for (Pair<Character, Character> characterCharacterPair : singleArray) {
+                            tmpMap.put(characterCharacterPair.getKey(), characterCharacterPair.getValue());
                         }
-                        // [E = L, E = N] - do not add to tmpArray
                         if (tmpMap.size() < singleArray.size()) {
                             continue;
                         }
-                        // [E = L, N = L] - do not add to tmpArray
                         Set<Character> values = new HashSet<>(tmpMap.values());
                         if (values.size() == singleArray.size()) {
                             tmpArray.add(singleArray);
@@ -624,7 +665,7 @@ public class GenSubDecrypt extends Decrypt
         }
     }
 
-    // Function to remove duplicates from an ArrayList.
+    // Function to remove duplicates from an ArrayList
     private <T> ArrayList<T> removeDuplicates(ArrayList<T> list)
     {
         ArrayList<T> newList = new ArrayList<>();
@@ -636,7 +677,7 @@ public class GenSubDecrypt extends Decrypt
         return newList;
     }
 
-    // For a given word, returns the most similar word in ENGLISH_?_LETTER_WORDS.
+    // For a given word, returns the most similar word in ENGLISH_?_LETTER_WORDS
     private void mostSimilarWord(String possibleWord)
     {
         if (possibleWord.length() == 1) {
@@ -647,58 +688,54 @@ public class GenSubDecrypt extends Decrypt
             }
         } else if (possibleWord.length() == 2) {
             LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
-            for (int i = 0; i < ENGLISH_TWO_LETTER_WORDS.size(); i++) {
-                String word = ENGLISH_TWO_LETTER_WORDS.get(i);
+            for (String word : ENGLISH_TWO_LETTER_WORDS) {
                 similarities.put(word, similarity(possibleWord.toUpperCase(), word));
             }
             genMostSimilarities(possibleWord, similarities);
         } else if (possibleWord.length() == 3) {
             LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
-            for (int i = 0; i < ENGLISH_THREE_LETTER_WORDS.size(); i++) {
-                String word = ENGLISH_THREE_LETTER_WORDS.get(i);
+            for (String word : ENGLISH_THREE_LETTER_WORDS) {
                 similarities.put(word, similarity(possibleWord.toUpperCase(), word));
             }
             genMostSimilarities(possibleWord, similarities);
         } else if (possibleWord.length() == 4) {
             LinkedHashMap<String, Double> similarities = new LinkedHashMap<>();
-            for (int i = 0; i < ENGLISH_FOUR_LETTER_WORDS.size(); i++) {
-                String word = ENGLISH_FOUR_LETTER_WORDS.get(i);
+            for (String word : ENGLISH_FOUR_LETTER_WORDS) {
                 similarities.put(word, similarity(possibleWord.toUpperCase(), word));
             }
             genMostSimilarities(possibleWord, similarities);
         }
     }
 
-    // Checks to see is all characters in a string are all lower case.
+    // Checks to see is all characters in a string are all lower case
     private boolean allLowerCase(String str)
     {
         char[] charArray = str.toCharArray();
-        for (int i = 0; i < charArray.length; i++) {
-            if (!Character.isLowerCase(charArray[i])) {
+        for (char c : charArray) {
+            if (!Character.isLowerCase(c)) {
                 return false;
             }
         }
         return true;
     }
 
-    // Checks to see is all characters in a string are all upper case.
+    // Checks to see is all characters in a string are all upper case
     private boolean allUpperCase(String str)
     {
         char[] charArray = str.toCharArray();
-        for (int i = 0; i < charArray.length; i++) {
-            if (!Character.isUpperCase(charArray[i])) {
+        for (char c : charArray) {
+            if (!Character.isUpperCase(c)) {
                 return false;
             }
         }
         return true;
     }
 
-    // Populate mostSimilaritiesForEachWord.
+    // Helper for populating mostSimilaritiesForEachWord
     private void genMostSimilarities(String possibleWord, LinkedHashMap<String, Double> similarities)
     {
         ArrayList<String> sortedSimilarWords = new ArrayList<>(sortByValue(similarities));
         if (!allUpperCase(possibleWord)) {
-            // Generate indexes of possibleWord which need checking due to being lowerCase
             ArrayList<Integer> lowerCaseIndexes = new ArrayList<>();
             char[] possibleWordCA = possibleWord.toCharArray();
             for (int i = 0; i < possibleWordCA.length; i++) {
@@ -706,20 +743,19 @@ public class GenSubDecrypt extends Decrypt
                     lowerCaseIndexes.add(i);
                 }
             }
-            // Generate newSortedList based on indexes of lowerCase letters in possibleWord
             ArrayList<String> newSortedList = new ArrayList<>();
-            for (int i = 0; i < sortedSimilarWords.size(); i++) {
+            for (String sortedSimilarWord : sortedSimilarWords) {
                 boolean toAdd = true;
                 for (Integer index : lowerCaseIndexes) {
                     String possibleWordLetter = possibleWord.substring(index, index + 1);
-                    String sortedSimilarWordLetter = sortedSimilarWords.get(i).substring(index, index + 1);
+                    String sortedSimilarWordLetter = sortedSimilarWord.substring(index, index + 1);
                     if (!possibleWordLetter.toUpperCase().equals(sortedSimilarWordLetter)) {
                         toAdd = false;
                         break;
                     }
                 }
                 if (toAdd) {
-                    newSortedList.add(sortedSimilarWords.get(i));
+                    newSortedList.add(sortedSimilarWord);
                 }
             }
             mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, newSortedList));
@@ -728,7 +764,7 @@ public class GenSubDecrypt extends Decrypt
         }
     }
 
-    // Sort HashMap by values
+    // Sort HashMap by values into descending order
     private Set<String> sortByValue(LinkedHashMap<String, Double> hm)
     {
         //LinkedHashMap preserve the ordering of elements in which they are inserted
@@ -738,22 +774,25 @@ public class GenSubDecrypt extends Decrypt
         return reverseSortedMap.keySet();
     }
 
-    // Calculates the similarity (a number within 0 and 1) between two strings.
+    // Calculates the similarity between two strings
+    // 1.0 means the two strings are identical
+    // 0.0 means each character in both strings at corresponding indexes are different
     private double similarity(String s1, String s2)
     {
-        String longer = s1, shorter = s2;
-        if (s1.length() < s2.length()) { // longer should always have greater length
+        String longer = s1;
+        String shorter = s2;
+        if (s1.length() < s2.length()) {
             longer = s2;
             shorter = s1;
         }
         int longerLength = longer.length();
         if (longerLength == 0) {
-            return 1.0; // both strings are zero length
+            return 1.0;
         }
         return (longerLength - editDistance(longer, shorter)) / (double) longerLength;
     }
 
-    // Example implementation of the Levenshtein Edit Distance.
+    // Helper method to calculating the similarity between two strings
     private int editDistance(String s1, String s2)
     {
         s1 = s1.toLowerCase();
