@@ -196,6 +196,8 @@ public class GenSubDecrypt extends Decrypt
     private ArrayList<Pair<String, ArrayList<String>>> mostSimilaritiesForEachWord;
     // For each word in the mostSimilaritiesForEachWord, records the necessary letter mappings to acquire to each word
     private ArrayList<Pair<String, ArrayList<ArrayList<Pair<Character, Character>>>>> mostSimilaritiesForEachWordMappings;
+    // Key: a one letter potentialWord, Value: the number of occurrences for the one letter word
+    private HashMap<String, Integer> oneLetterPotentialWordsOccurrences;
 
     public GenSubDecrypt(File tessFile, File cipherFile) throws IOException
     {
@@ -209,6 +211,7 @@ public class GenSubDecrypt extends Decrypt
         {{
             put('|', '|');
         }};
+        this.oneLetterPotentialWordsOccurrences = new HashMap<>();
     }
 
     /**
@@ -254,6 +257,8 @@ public class GenSubDecrypt extends Decrypt
         // occurring character in the part decrypted plaintext
         String[] separated = pt.split("\\|");
         ArrayList<String> potentialWords = new ArrayList<>(Arrays.asList(separated));
+        // Record any one letter occurrences and how many of each
+        popOneLetterPotentialWordsOccurrences(potentialWords);
         // Populate mostSimilaritiesForEachWord, any English words found will be removed
         // and their letter mappings added to mappedLetters2DuplicateKeyValue
         popMostSimilaritiesForEachWord(containsEnglishWords(potentialWords));
@@ -262,7 +267,6 @@ public class GenSubDecrypt extends Decrypt
         // Populate mostSimilaritiesForEachWordMappings
         popMostSimilaritiesForEachWordMappings();
         // Generate mappedLetter2 and mappedLetter2DuplicateKeyValue using most common 1, 2, 3 and 4 letter words - word frequency analysis
-        // TODO Add handling for if there are 2x one letter words, not just 1x (R = [[R=A], [R=I]])
         for (int i = 0; i < mostSimilaritiesForEachWordMappings.size(); ) {
             // Clauses for discarding words in mostSimilaritiesForEachWord and mostSimilaritiesForEachWordMappings
             if (mostSimilaritiesForEachWordMappings.get(i).getValue().isEmpty()) {
@@ -677,12 +681,49 @@ public class GenSubDecrypt extends Decrypt
         return newList;
     }
 
+    // Populate oneLetterPotentialWordsOccurrences
+    private void popOneLetterPotentialWordsOccurrences(ArrayList<String> potentialWords)
+    {
+        ArrayList<String> oneLetterWords = new ArrayList<>();
+        for (String potentialWord : potentialWords) {
+            if (potentialWord.length() == 1) {
+                oneLetterWords.add(potentialWord);
+            }
+        }
+        HashMap<String, Integer> occurrencesOfOneLetterWords = new HashMap<String, Integer>()
+        {{
+            for (String oneLetterWord : oneLetterWords) {
+                put(oneLetterWord, 0);
+            }
+        }};
+        for (String potentialWord : potentialWords) {
+            if (potentialWord.length() == 1) {
+                occurrencesOfOneLetterWords.put(potentialWord, occurrencesOfOneLetterWords.get(potentialWord) + 1);
+            }
+        }
+        oneLetterPotentialWordsOccurrences = occurrencesOfOneLetterWords;
+    }
+
+    // Reverse the order of an ArrayList containing strings
+    private ArrayList<String> reverse(ArrayList<String> list)
+    {
+        for (int i = 0, j = list.size() - 1; i < j; i++) {
+            list.add(i, list.remove(j));
+        }
+        return list;
+    }
+
     // For a given word, returns the most similar word in ENGLISH_?_LETTER_WORDS
     private void mostSimilarWord(String possibleWord)
     {
         if (possibleWord.length() == 1) {
             if (!ENGLISH_ONE_LETTER_WORDS.contains(possibleWord.toUpperCase())) {
-                mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, ENGLISH_ONE_LETTER_WORDS));
+                String oneLetterWordWithMostOccurrences = oneLetterPotentialWordsOccurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+                if (oneLetterWordWithMostOccurrences.equals(possibleWord.toUpperCase())) {
+                    mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, ENGLISH_ONE_LETTER_WORDS));
+                } else {
+                    mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, reverse(ENGLISH_ONE_LETTER_WORDS)));
+                }
             } else {
                 mostSimilaritiesForEachWord.add(new Pair<>(possibleWord, new ArrayList<>()));
             }
