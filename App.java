@@ -55,6 +55,7 @@ public class App
     private static void outputFile(String plaintext, String name) throws IOException
     {
         File outputDirectory = new File("." + File.separator + "outputs");
+        String questionNumber = name.substring(name.length() - 5).substring(0, 1);
         if (!outputDirectory.exists()) {
             outputDirectory.mkdir();
         }
@@ -64,12 +65,13 @@ public class App
             copyFile(outputFile, tmpFile);
             outputFile.delete();
             BufferedWriter out = new BufferedWriter(new FileWriter(outputFile, true));
-            out.write(plaintext + "\n");
+            out.write(plaintext.substring(0, 30) + "\n");
+            out.write("\n" + "Full Decrypted Plaintext for Exercise " + questionNumber + ": " + plaintext + "\n");
             String currentLine;
             BufferedReader tmp = new BufferedReader(new FileReader(tmpFile));
             int index = 1;
             while ((currentLine = tmp.readLine()) != null) {
-                if (index > 2 || index == 2 && !currentLine.equals("")) {
+                if (index > 4) {
                     out.write("\n" + currentLine);
                 }
                 index++;
@@ -78,8 +80,8 @@ public class App
             tmpFile.delete();
         } else {
             BufferedWriter out = new BufferedWriter(new FileWriter(outputFile, true));
-            out.write(plaintext);
-            out.write("\n");
+            out.write(plaintext.substring(0, 30) + "\n");
+            out.write("\n" + "Full Decrypted Plaintext for Exercise " + questionNumber + ": " + plaintext + "\n");
             out.close();
         }
     }

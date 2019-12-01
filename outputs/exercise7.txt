@@ -1,3 +1,196 @@
-REAT|BETWEEN|ITS|HEDGES|TILL|THE|VICARS|FAMILY|SHOULD|HAVE|LUNCHED|AND|IT|MIGHT|BE|CONVENIENT|FOR|THEM|TO|RECEIVE|HER|SHE|SOON|DISTANCED|THE|CHURCHGOERS|EXCEPT|TWO|YOUNGISH|MEN|WHO|LINKED|ARM|IN|ARM|WERE|BEATING|UP|BEHIND|HER|AT|A|QUICK|STEP|AS|THEY|DREW|NEARER|SHE|COULD|HEAR|THEIR|VOICES|ENGAGED|IN|EARNEST|DISCOURSE|AND|WITH|THE|NATURAL|QUICKNESS|OF|A|WOMAN|IN|HER|SITUATION|DID|NOT|FAIL|TO|RECOGNIZE|IN|THOSE|NOISES|THE|QUALITY|OF|HER|HUSBANDS|TONES|THE|PEDESTRIANS|WERE|HIS|TWO|BROTHERS|FORGETTING|ALL|HER|PLANS|TESSS|ONE|DREAD|WAS|LEST|THEY|SHOULD|OVERTAKE|HER|NOW|IN|HER|DISORGANIZED|CONDITION|BEFORE|SHE|WAS|PREPARED|TO|CONFRONT|THEM|FOR|THOUGH|SHE|FELT|THAT|THEY|COULD|NOT|IDENTIFY|HER|SHE|INSTINCTIVELY|DREADED|THEIR|SCRUTINY|THE|MORE|BRISKLY|THEY|WALKED|THE|MORE|BRISKLY|WALKED|SHE|THEY|WERE|PLAINLY|BENT|UPON|TAKING|A|SHORT|QUIC
+REAT|BETWEEN|ITS|HEDGES|TILL|T
 
-TODO: Write description for General Substitution Cipher - Question 7
+Full Decrypted Plaintext for Exercise 7: REAT|BETWEEN|ITS|HEDGES|TILL|THE|VICARS|FAMILY|SHOULD|HAVE|LUNCHED|AND|IT|MIGHT|BE|CONVENIENT|FOR|THEM|TO|RECEIVE|HER|SHE|SOON|DISTANCED|THE|CHURCHGOERS|EXCEPT|TWO|YOUNGISH|MEN|WHO|LINKED|ARM|IN|ARM|WERE|BEATING|UP|BEHIND|HER|AT|A|QUICK|STEP|AS|THEY|DREW|NEARER|SHE|COULD|HEAR|THEIR|VOICES|ENGAGED|IN|EARNEST|DISCOURSE|AND|WITH|THE|NATURAL|QUICKNESS|OF|A|WOMAN|IN|HER|SITUATION|DID|NOT|FAIL|TO|RECOGNIZE|IN|THOSE|NOISES|THE|QUALITY|OF|HER|HUSBANDS|TONES|THE|PEDESTRIANS|WERE|HIS|TWO|BROTHERS|FORGETTING|ALL|HER|PLANS|TESSS|ONE|DREAD|WAS|LEST|THEY|SHOULD|OVERTAKE|HER|NOW|IN|HER|DISORGANIZED|CONDITION|BEFORE|SHE|WAS|PREPARED|TO|CONFRONT|THEM|FOR|THOUGH|SHE|FELT|THAT|THEY|COULD|NOT|IDENTIFY|HER|SHE|INSTINCTIVELY|DREADED|THEIR|SCRUTINY|THE|MORE|BRISKLY|THEY|WALKED|THE|MORE|BRISKLY|WALKED|SHE|THEY|WERE|PLAINLY|BENT|UPON|TAKING|A|SHORT|QUIC
+
+For the Java source code used in the completion of Exercise 7, please refer to the supporting file(s):
+
+GenSubDecrypt.java
+Decrypt.java (abstract class)
+App.java (main method)
+
+Description:
+
+I completed this exercise by using: letter frequency analysis, word frequency analysis, and looking for digraphs and trigraphs.
+
+1) The GenSubDecrypt.decrypt() method starts by counting the number of letter occurrences of each letter in the ciphertext character alphabet.
+
+2) The character '|' represents any character (which isn't A-Z), including spaces. It's therefore most probable that the character '|' is going to be the most common character in our plaintext. This tells us 'T' which was the most common letter in the ciphertext will map to '|' in our plaintext (T -> |). We can also create some preliminary letter mappings, such that we map the second most occurring letter in the cipher text to the most common frequently used letter in the english language; then the third most occurring letter in the ciphertext to the second most frequent letter in english; and so on. For example:
+
+('T' had the most occurrences in ciphertext)
+T -> |
+O -> E
+I -> T
+L -> A
+D -> O
+N -> I
+S -> N
+C -> S
+| -> H
+A -> R
+E -> D
+V -> L
+X -> C
+M -> U
+J -> M
+W -> W
+P -> F
+Z -> G
+R -> Y
+Y -> P
+G -> B
+K -> V
+B -> K
+Q -> J
+H -> X
+U -> Q
+F -> Z
+('F' had the fewest occurrences in ciphertext)
+
+This yield us with a partially decrypted plaintext:
+
+NERT|PETMEEO|ITS|AEDFES|TILL|TAE|KICRNS|GRYILW|SAHULD|ARKE|LUOCAED|ROD|IT|YIFAT|PE|CHOKEOIEOT|GHN|TAEY|TH|NECEIKE|AEN|SAE|SHHO|DISTROCED|TAE|CAUNCAFHENS|EQCEVT|TMH|WHUOFISA|YEO|MAH|LIOBED|RNY|IO|RNY|MENE|PERTIOF|UV|PEAIOD|AEN|RT|R|JUICB|STEV|RS|TAEW|DNEM|OERNEN|SAE|CHULD|AERN|TAEIN|KHICES|EOFRFED|IO|ERNOEST|DISCHUNSE|ROD|MITA|TAE|ORTUNRL|JUICBOESS|HG|R|MHYRO|IO|AEN|SITURTIHO|DID|OHT|GRIL|TH|NECHFOIXE|IO|TAHSE|OHISES|TAE|JURLITW|HG|AEN|AUSPRODS|THOES|TAE|VEDESTNIROS|MENE|AIS|TMH|PNHTAENS|GHNFETTIOF|RLL|AEN|VLROS|TESSS|HOE|DNERD|MRS|LEST|TAEW|SAHULD|HKENTRBE|AEN|OHM|IO|AEN|DISHNFROIXED|CHODITIHO|PEGHNE|SAE|MRS|VNEVRNED|TH|CHOGNHOT|TAEY|GHN|TAHUFA|SAE|GELT|TART|TAEW|CHULD|OHT|IDEOTIGW|AEN|SAE|IOSTIOCTIKELW|DNERDED|TAEIN|SCNUTIOW|TAE|YHNE|PNISBLW|TAEW|MRLBED|TAE|YHNE|PNISBLW|MRLBED|SAE|TAEW|MENE|VLRIOLW|PEOT|UVHO|TRBIOF|R|SAHNT|JUIC
+
+What is useful about this partially decrypted plaintext is that the '|' characters are all correctly mapped, so we can break the characters in-between into individual words:
+
+NERT
+PETMEEO
+ITS
+AEDFES
+...
+
+3) Using lists of the most common 1,2,3,4 letter words in the english language, for each word in the list of separated words (described above), I record words which are of the same length as being a possibility of what the separated word will become. For example:
+
+TAEY=[THEY, THAT, HAVE, THIS, WANT, BEEN, TIME, WITH, WILL, YOUR, FROM, KNOW, GOOD, MUCH, SOME]
+
+Then for each word possibility, I record the necessary character mappings for the change. For example:
+
+TAEY=[[A=H], [A=H, E=A, Y=T], [T=H, E=V, Y=E], [A=H, E=I, Y=S], [T=W, E=N, Y=T], [T=B, A=E, Y=N], [A=I, E=M, Y=E], [T=W, A=I, E=T, Y=H], [T=Y, A=O, E=U, Y=R], [T=F, A=R, E=O, Y=M], [T=K, A=N, E=O, Y=W], [T=M, A=U, E=C, Y=H], [T=S, A=O, E=M, Y=E]]
+
+By then ordering the list of separated words smallest to biggest (e.g. 1 letter words, then 2 letter words, then 3 letter words...), and working down the list, word-by-word, taking the most probable character mappings, and updating characters in the list of separated words by the new character mappings acquired, until we have no more separated words to check; we end up with the majority of character mappings to take us from the characters in the partially decrypted plaintext to our desired plaintext. For example:
+
+(the character mappings to take us from the partially decrypted plaintext to desired plaintext)
+R -> A
+P -> B
+H -> O
+V -> P
+G -> F
+A -> H
+O -> N
+N -> R
+M -> W
+K -> V
+W -> Y
+| -> |
+I -> I
+T -> T
+S -> S
+D -> D
+E -> E
+U -> U
+L -> L
+
+(overall character mappings thus far)
+T -> | -> |
+O -> E -> E
+I -> T -> T
+L -> A -> H
+D -> O -> N
+N -> I -> I
+S -> N -> R
+C -> S -> S
+| -> H -> O
+A -> R -> A
+E -> D -> D
+V -> L -> L
+X -> C
+M -> U -> U
+J -> M -> W
+W -> W -> Y
+P -> F
+Z -> G -> F
+R -> Y
+Y -> P -> B
+G -> B
+K -> V -> P
+B -> K -> V
+Q -> J
+H -> X
+U -> Q
+F -> Z
+
+Using the current overall character mappings, we get a plaintext that is looking ever closer to english. For example: (lower case letters represent letters which are in their final mapping)
+
+reat|between|its|hedFes|till|the|viCars|faYily|should|have|lunChed|and|it|YiFht|be|Convenient|for|theY|to|reCeive|her|she|soon|distanCed|the|ChurChFoers|eQCept|two|younFish|Yen|who|linBed|arY|in|arY|were|beatinF|up|behind|her|at|a|JuiCB|step|as|they|drew|nearer|she|Could|hear|their|voiCes|enFaFed|in|earnest|disCourse|and|with|the|natural|JuiCBness|of|a|woYan|in|her|situation|did|not|fail|to|reCoFniXe|in|those|noises|the|Juality|of|her|husbands|tones|the|pedestrians|were|his|two|brothers|forFettinF|all|her|plans|tesss|one|dread|was|lest|they|should|overtaBe|her|now|in|her|disorFaniXed|Condition|before|she|was|prepared|to|Confront|theY|for|thouFh|she|felt|that|they|Could|not|identify|her|she|instinCtively|dreaded|their|sCrutiny|the|Yore|brisBly|they|walBed|the|Yore|brisBly|walBed|she|they|were|plainly|bent|upon|taBinF|a|short|JuiC
+
+4) For those characters we still don't know the final mappings for:
+
+X -> C -> ?
+P -> F -> ?
+R -> Y -> ?
+G -> B -> ?
+Q -> J -> ?
+H -> X -> ?
+U -> Q -> ?
+F -> Z -> ?
+
+We can figure what they could be by looking at the collection of final mappings so far. By taking the furthest right letter for each row of the 'overall character mappings thus far' (as above), we get the following string of letters:
+
+|ETHNIRSOADLCUWYFFYBBPVJXQZ
+
+If we count the letter occurrences in this string:
+
+A = 1
+B = 2
+C = 1
+D = 1
+E = 1
+F = 2
+G = 0
+H = 1
+I = 1
+J = 1
+K = 0
+L = 1
+M = 0
+N = 1
+O = 1
+P = 1
+Q = 1
+R = 1
+S = 1
+T = 1
+U = 1
+V = 1
+W = 1
+X = 1
+Y = 2
+Z = 1
+| = 1
+
+Ideally we want all of these to equal '1', as in a General Substitution cipher, each letter uniquely maps to another letter. So it's clear to say that for the characters which appear twice in this string, will map to one of the characters with '0' occurrences in this string, and the remaining unaccounted for character mappings will map to one of themselves. For example:
+
+(B = 2) will map to either: [G, K, M]
+(F = 2) will map to either: [G, K, M]
+(Y = 2) will map to either: [G, K, M]
+
+(C = 1) will map to either: [C, J, Q, X, Z]
+(J = 1) will map to either: [C, J, Q, X, Z]
+(Q = 1) will map to either: [C, J, Q, X, Z]
+(X = 1) will map to either: [C, J, Q, X, Z]
+(Z = 1) will map to either: [C, J, Q, X, Z]
+
+The number of possibilities here are:
+
+= 3! * 5!
+= 6 * 120
+= 720
+
+5) For each of the 720 combinations of unaccounted for letter mappings, we can generate a decrypted plaintext from the most recently acquired plaintext: (changing only the capital letters with 1 of the 720 combinations of unaccounted for letter mappings)
+
+reat|between|its|hedFes|till|the|viCars|faYily|should|have|lunChed|and|it|YiFht|be|Convenient|for|theY|to|reCeive|her|she|soon|distanCed|the|ChurChFoers|eQCept|two|younFish|Yen|who|linBed|arY|in|arY|were|beatinF|up|behind|her|at|a|JuiCB|step|as|they|drew|nearer|she|Could|hear|their|voiCes|enFaFed|in|earnest|disCourse|and|with|the|natural|JuiCBness|of|a|woYan|in|her|situation|did|not|fail|to|reCoFniXe|in|those|noises|the|Juality|of|her|husbands|tones|the|pedestrians|were|his|two|brothers|forFettinF|all|her|plans|tesss|one|dread|was|lest|they|should|overtaBe|her|now|in|her|disorFaniXed|Condition|before|she|was|prepared|to|Confront|theY|for|thouFh|she|felt|that|they|Could|not|identify|her|she|instinCtively|dreaded|their|sCrutiny|the|Yore|brisBly|they|walBed|the|Yore|brisBly|walBed|she|they|were|plainly|bent|upon|taBinF|a|short|JuiC
+
+The result then may or may not be the required final plaintext. We could reduce the quantity to a smaller quantity by counting the number of digraphs (commonly found groups of 2 letters in english) and trigraphs (commonly found groups of 3 letters in english) found in each decrypted plaintext.
+
+If we then take only the combinations of unaccounted for letter mappings which result in the most digraphs and trigraphs found in their respective decrypted plaintexts, this has reduced the number of possible combinations from 720 to 48!
+
+6) Lastly, try each of the 48 combinations of unaccounted for letter mappings, along with 'the character mappings to take us from the partially decrypted plaintext to desired plaintext' found in 3), one of the 48 them will result in a english readable plaintext (with all a-z letters converted to uppercase again, A-Z) which will be contained in tess27.txt.

@@ -1,3 +1,13 @@
 MAIDONLYWHOHADTOHOLDHEROWNAGAI
 
-TODO: Write description for Vigenere Cipher - Question 2 w/ static key
+Full Decrypted Plaintext for Exercise 2: MAIDONLYWHOHADTOHOLDHEROWNAGAI
+
+For the Java source code used in the completion of Exercise 2, please refer to the supporting file(s):
+
+VigenereDecrypt.java
+Decrypt.java (abstract class)
+App.java (main method)
+
+Description:
+
+TODO: Write description for Vigenere Cipher - Question 2
