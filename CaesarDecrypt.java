@@ -47,7 +47,6 @@ public class CaesarDecrypt extends Decrypt
                 int c = findIndex(charAlphabet, ciphertext.charAt(j));
                 plaintext += charAlphabet[(charAlphaLen + (c - i)) % charAlphaLen];
             }
-            System.out.println();
             int totalOccurrences = 0;
             for (String commonPairOrRepeat : ENGLISH_COMMON_PAIRS_AND_REPEATS) {
                 int lastIndex = 0;

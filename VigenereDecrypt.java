@@ -1,9 +1,6 @@
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 /**
  * Decryption of ciphertext encoded with a Vigenere Cipher.
@@ -41,6 +38,17 @@ public class VigenereDecrypt extends Decrypt
         put('X', 0.150);
         put('Y', 1.974);
         put('Z', 0.074);
+    }};
+    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<String>()
+    {{
+        add("TH");
+        add("ER");
+        add("ON");
+        add("AN");
+        add("SS");
+        add("EE");
+        add("TT");
+        add("FF");
     }};
     private String pt;
     private String unknownKey;
@@ -94,16 +102,42 @@ public class VigenereDecrypt extends Decrypt
             potentialKeys.add(unknownKey);
             unknownKey = "";
         }
-        System.out.println("Try Keys: " + potentialKeys);
-        String ptToReturn = "";
-
+        System.out.println("Potential Keys: " + potentialKeys);
+        // Generate a potential decrypted plaintext for each potential key
+        LinkedHashMap<String, String> potentialDecryptedPlaintexts = new LinkedHashMap<>();
         for (String key : potentialKeys) {
-            decryptPrivate(key);
-            if (!pt.equals("")) {
-                ptToReturn = pt;
-            }
+            decryptPrivateNoTest(key);
+            potentialDecryptedPlaintexts.put(key, pt);
+            pt = "";
         }
-        return ptToReturn;
+        // Count the number of times common pairs and repeats in the english language
+        // occur in each potential plaintext
+        LinkedHashMap<String, Integer> occurrences = new LinkedHashMap<>();
+        for (int i = 0; i < potentialDecryptedPlaintexts.size(); i++) {
+            int totalOccurrences = 0;
+            for (String commonPairOrRepeat : ENGLISH_COMMON_PAIRS_AND_REPEATS) {
+                int lastIndex = 0;
+                while (lastIndex != -1) {
+                    lastIndex = potentialDecryptedPlaintexts.get(potentialKeys.get(i)).indexOf(commonPairOrRepeat, lastIndex);
+                    if (lastIndex != -1) {
+                        totalOccurrences++;
+                        lastIndex += commonPairOrRepeat.length();
+                    }
+                }
+            }
+            occurrences.put(potentialKeys.get(i), totalOccurrences);
+        }
+        // The plaintext with the highest count of occurrences will most likely be english
+        String keyMaximumOccurrences = occurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+        String decryptedPlaintext = potentialDecryptedPlaintexts.get(keyMaximumOccurrences);
+        // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
+        if (tess.contains(decryptedPlaintext)) {
+            System.out.println("Decrypted: " + decryptedPlaintext);
+            System.out.println("Key: " + keyMaximumOccurrences);
+            System.out.println();
+            pt = decryptedPlaintext;
+        }
+        return pt;
     }
 
     // Decrypt with known key
@@ -129,6 +163,25 @@ public class VigenereDecrypt extends Decrypt
             System.out.println();
             pt = decryptedPlaintext;
         }
+    }
+
+    // Decrypt with known key, though do not test to see if plaintext is in tess??.txt
+    private void decryptPrivateNoTest(String key)
+    {
+        String decryptedPlaintext = "";
+        char[] keyCharacters = key.toCharArray();
+        int charAlphaLen = charAlphabet.length;
+        int i = 0;
+        // For each character in the cipher text.
+        for (char character : ciphertext.toCharArray()) {
+            // The value of the character in the cipher text.
+            int a = findIndex(charAlphabet, character);
+            // The value of the character in the provided key.
+            int b = findIndex(charAlphabet, keyCharacters[(i % key.length())]);
+            decryptedPlaintext += charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen];
+            i++;
+        }
+        pt = decryptedPlaintext;
     }
 
     // Find the most likely key of a certain length.
