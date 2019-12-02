@@ -87,6 +87,8 @@ public class VigenereDecrypt extends Decrypt
     {
         System.out.println(getExercise(cipherFile) + ": Vigenere Cipher");
         ArrayList<String> potentialKeys = new ArrayList<>();
+        // Populate potentialKeys, for each keyLen between smallestKeyLen and largestKeyLen (inclusive),
+        // find the most likely key for each key length
         for (int i = smallestKeyLen; i <= largestKeyLen; i++) {
             findKey(i);
             potentialKeys.add(unknownKey);
@@ -94,6 +96,7 @@ public class VigenereDecrypt extends Decrypt
         }
         System.out.println("Try Keys: " + potentialKeys);
         String ptToReturn = "";
+
         for (String key : potentialKeys) {
             decryptPrivate(key);
             if (!pt.equals("")) {
@@ -132,7 +135,6 @@ public class VigenereDecrypt extends Decrypt
     private void findKey(int keyLen)
     {
         ArrayList<String> charsAtKeyOccurrences = genCharsAtKeyOccurrences(keyLen);
-
         // Create blank letterOccurrences data array.
         ArrayList<HashMap<Character, Integer>> letterOccurrences = new ArrayList<>();
         for (int i = 0; i < keyLen; i++) {
@@ -142,15 +144,13 @@ public class VigenereDecrypt extends Decrypt
             }
             letterOccurrences.add(blank);
         }
-
-        // Populate letterOccurences
+        // Populate letterOccurrences
         for (int i = 0; i < charsAtKeyOccurrences.size(); i++) {
             for (char c : charsAtKeyOccurrences.get(i).toCharArray()) {
                 HashMap<Character, Integer> singleLetterOccurrences = letterOccurrences.get(i);
                 singleLetterOccurrences.put(c, singleLetterOccurrences.get(c) + 1);
             }
         }
-
         // Create blank letterOccurrenceFreq data array.
         ArrayList<LinkedHashMap<Character, Double>> letterOccurrenceFreq = new ArrayList<>();
         for (int i = 0; i < keyLen; i++) {
@@ -160,14 +160,12 @@ public class VigenereDecrypt extends Decrypt
             }
             letterOccurrenceFreq.add(blank);
         }
-
         // Populate letterOccurrenceFreq
         for (int i = 0; i < letterOccurrenceFreq.size(); i++) {
             for (char c : charAlphabet) {
                 letterOccurrenceFreq.get(i).put(c, (double) letterOccurrences.get(i).get(c) / charsAtKeyOccurrences.get(i).length());
             }
         }
-
         // Find letter for each index of key
         for (LinkedHashMap<Character, Double> characterDoubleLinkedHashMap : letterOccurrenceFreq) {
             ArrayList<Double> singleLetterOccurrenceFreq = new ArrayList<>(characterDoubleLinkedHashMap.values());

@@ -10,13 +10,13 @@ App.java (main method)
 
 Description:
 
-Using a Java implementation, for each character in the ciphertext, I would conduct the equivalent of a Caesar cipher transformation for each character in the ciphertext for the corresponding index in the provided key. Repeating the key so many times such that each character in the ciphertext corresponds to a character in the provided key. For example:
+Using a Java implementation, for each character in the ciphertext, I would conduct the equivalent of a Caesar cipher transformation for each character in the ciphertext for the corresponding index in the provided key. Repeating the key so many times such that each character in the ciphertext corresponds to a character in the provided key. The method which does this is VigenereDecrypt.decryptPrivate(String key). For example:
 
 Key: TESSOFTHEDURBERVILLES
 
 FEAVCSEFAKIYBHKJPZWHZXVGOBFZHM (ciphertext)
 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-TESSOFTHEDURBERVILLESTESSOFTHE (key, repeated 1 and a bit times, to the same length as the ciphertext)
+TESSOFTHEDURBERVILLESTESSOFTHE (key, repeated 1 and a bit times) (key repeats until each character in the ciphertext maps to a corresponding character in the key)
 ------------------------------
 MAIDONLYWHOHADTOHOLDHEROWNAGAI (plaintext)
 
