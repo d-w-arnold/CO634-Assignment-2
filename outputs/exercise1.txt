@@ -10,4 +10,4 @@ App.java (main method)
 
 Description:
 
-TODO: Write description for Caesar Cipher - Question 1
+Using a Java implementation, I tried all characters in the character alphabet as the possible key. If the decrypted plaintext using a particular key, generated a plaintext in readable english which was also contained in tess26.txt, this must be the correct decryption.

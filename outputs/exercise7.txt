@@ -10,7 +10,7 @@ App.java (main method)
 
 Description:
 
-I completed this exercise by using: letter frequency analysis, word frequency analysis, and looking for digraphs and trigraphs.
+Using a Java implementation, I completed this exercise by using: letter frequency analysis, word frequency analysis, and looking for digraphs and trigraphs.
 
 1) The GenSubDecrypt.decrypt() method starts by counting the number of letter occurrences of each letter in the ciphertext character alphabet.
 

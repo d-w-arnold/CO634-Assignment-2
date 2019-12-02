@@ -471,6 +471,7 @@ public class GenSubDecrypt extends Decrypt
                             newTmpPT += tmpPTChar;
                         }
                     }
+                    // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
                     if (tess.contains(newTmpPT.toUpperCase())) {
                         pt = newTmpPT.toUpperCase();
                         System.out.println("Decrypted: " + pt);
