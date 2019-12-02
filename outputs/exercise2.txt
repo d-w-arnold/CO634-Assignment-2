@@ -10,4 +10,14 @@ App.java (main method)
 
 Description:
 
-TODO: Write description for Vigenere Cipher - Question 2
+Using a Java implementation, for each character in the ciphertext, I would conduct the equivalent of a Caesar cipher transformation for each character in the ciphertext for the corresponding index in the provided key. Repeating the key so many times such that each character in the ciphertext corresponds to a character in the provided key. For example:
+
+Key: TESSOFTHEDURBERVILLES
+
+FEAVCSEFAKIYBHKJPZWHZXVGOBFZHM (ciphertext)
+↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+TESSOFTHEDURBERVILLESTESSOFTHE (key, repeated 1 and a bit times, to the same length as the ciphertext)
+------------------------------
+MAIDONLYWHOHADTOHOLDHEROWNAGAI (plaintext)
+
+If tess26.txt contains the plaintext, we know the decryption was successful.

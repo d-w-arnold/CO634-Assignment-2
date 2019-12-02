@@ -169,8 +169,8 @@ public class VigenereDecrypt extends Decrypt
         }
 
         // Find letter for each index of key
-        for (int i = 0; i < letterOccurrenceFreq.size(); i++) {
-            ArrayList<Double> singleLetterOccurrenceFreq = new ArrayList<>(letterOccurrenceFreq.get(i).values());
+        for (LinkedHashMap<Character, Double> characterDoubleLinkedHashMap : letterOccurrenceFreq) {
+            ArrayList<Double> singleLetterOccurrenceFreq = new ArrayList<>(characterDoubleLinkedHashMap.values());
             ArrayList<Double> englishLetterFreq = new ArrayList<>(FREQUENCY_OF_LETTERS_IN_ENGLISH.values());
             ArrayList<Double> ansFreq = new ArrayList<>();
             for (int j = 0; j < singleLetterOccurrenceFreq.size(); j++) {
