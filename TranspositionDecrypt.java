@@ -128,8 +128,7 @@ public class TranspositionDecrypt extends Decrypt
         // Key is the ordering of columns: e.g. 514203
         // Value is the plaintext created from the certain ordering of columns
         HashMap<String, String> plaintextForColumnCombinations = new HashMap<>();
-        // For each combination of columns 012345
-        // Decrypt to plaintext
+        // For each combination of columns 012345, decrypt to plaintext
         for (String colComb : columnCombinations) {
             ArrayList<Integer> cList = new ArrayList<>();
             for (char c : colComb.toCharArray()) {
@@ -166,7 +165,7 @@ public class TranspositionDecrypt extends Decrypt
             pairAndRepeatOccurences.put(colComb, totalOccurrences);
         }
         // The highest count would be the column ordering to most likely yield the correct decryption
-        String key = Collections.max(pairAndRepeatOccurences.entrySet(), (entry1, entry2) -> entry1.getValue() - entry2.getValue()).getKey();
+        String key = Collections.max(pairAndRepeatOccurences.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
         String potentialPt = plaintextForColumnCombinations.get(key);
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(potentialPt)) {

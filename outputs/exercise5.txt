@@ -10,4 +10,18 @@ App.java (main method)
 
 Description:
 
-TODO: Write description for Transposition Cipher - Question 5
+Using a Java implementation, I would generate a potential decrypted plaintext for each length of column between 4-6 (inclusive), and then for I would count the number of common pairs and repeats in english found in each potential plaintext. The plaintext with the most common pairs and repeats in the english language would most likely be english.
+
+1) The TranspositionDecrypt.decrypt(int smallestNumColumns, int largestNumColumns) method starts by gereating a potential decrypted plaintext for each number of columns.
+
+(4 columns) = "IEOJAHSEROOTNWG..."
+(5 columns) = "INACLAPNETRETUR..."
+(6 columns) = "IOWODLAEISTRRBT..."
+
+2) For each potential decrypted plaintext, I would count the number of common pairs and repeats in english found in each potential plaintext:
+
+(4 columns) = 38
+(5 columns) = 77
+(6 columns) = 46
+
+3) Lastly, whichever decrypted plaintext (for a given number of columns) results in the most occurrences is most likely to read english. If tess26.txt contains the plaintext, we know the decryption was successful.
