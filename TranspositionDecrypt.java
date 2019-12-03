@@ -1,8 +1,6 @@
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Decryption of ciphertext encoded with a Transposition Cipher.
@@ -73,16 +71,31 @@ public class TranspositionDecrypt extends Decrypt
             }
             potentialPts.add(potentialPt);
         }
-        // For each potential plaintext
+        // For each potential plaintext, count the number of common pair and repeats
+        LinkedHashMap<String, Integer> occurrences = new LinkedHashMap<>();
         for (int i = 0; i < potentialPts.size(); i++) {
             String potentialPt = potentialPts.get(i);
-            // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
-            if (tess.contains(potentialPt)) {
-                System.out.println("Decrypted: " + potentialPt);
-                System.out.println("Number of Columns: " + (smallestNumColumns + i));
-                System.out.println();
-                pt = potentialPt;
+            int totalOccurrences = 0;
+            for (String commonPairOrRepeat : ENGLISH_COMMON_PAIRS_AND_REPEATS) {
+                int lastIndex = 0;
+                while (lastIndex != -1) {
+                    lastIndex = potentialPt.indexOf(commonPairOrRepeat, lastIndex);
+                    if (lastIndex != -1) {
+                        totalOccurrences++;
+                        lastIndex += commonPairOrRepeat.length();
+                    }
+                }
             }
+            occurrences.put(potentialPt, totalOccurrences);
+        }
+        // The plaintext with th maximum number of common pair and repeat occurrences
+        String plaintextMaxOccurrences = occurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+        // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
+        if (tess.contains(plaintextMaxOccurrences)) {
+            System.out.println("Decrypted: " + plaintextMaxOccurrences);
+            System.out.println("Number of Columns: " + (smallestNumColumns + potentialPts.indexOf(plaintextMaxOccurrences)));
+            System.out.println();
+            pt = plaintextMaxOccurrences;
         }
         return pt;
     }
@@ -165,6 +178,7 @@ public class TranspositionDecrypt extends Decrypt
         return pt;
     }
 
+    // Generate a column
     private String genColumn(String tmpCiphertext, ArrayList<ArrayList<Character>> columns, int colSize)
     {
         String column = tmpCiphertext.substring(0, colSize);
@@ -177,13 +191,7 @@ public class TranspositionDecrypt extends Decrypt
         return tmpCiphertext;
     }
 
-    /**
-     * Generate column combinations.
-     *
-     * @param str String to calculate column combinations for.
-     * @param l   Starting index.
-     * @param r   End index.
-     */
+    // Generate column combinations
     private void genColumnCombinations(String str, int l, int r)
     {
         if (l == r) {
@@ -197,15 +205,8 @@ public class TranspositionDecrypt extends Decrypt
         }
     }
 
-    /**
-     * Swap Characters at position.
-     *
-     * @param a String value.
-     * @param i Position 1.
-     * @param j Position 2.
-     * @return Swapped string.
-     */
-    public String swap(String a, int i, int j)
+    // Helper method for genColumnCombinations()
+    private String swap(String a, int i, int j)
     {
         char temp;
         char[] charArray = a.toCharArray();

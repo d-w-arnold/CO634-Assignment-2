@@ -10,4 +10,4 @@ App.java (main method)
 
 Description:
 
-Using a Java implementation, I tries all characters in the character alphabet as the possible key (the CaesarDecrypt.decrypt() method). For each possible key, I record the plaintext generated when decrypting using that character key and the number of times common pairs and repeats of letters in the english language occur in the plaintext. The key with most occurrences is most likely to read english, and if tess26.txt contains the plaintext for that key, we know the decryption was successful.
+Using a Java implementation, I tried all characters in the character alphabet as the possible key (the CaesarDecrypt.decrypt() method). For each possible key, I record the plaintext generated when decrypting using that character key and the number of times common pairs and repeats of letters in the english language occur in the plaintext. The key with most occurrences is most likely to read english, and if tess26.txt contains the plaintext for that key, we know the decryption was successful.
