@@ -10,9 +10,9 @@ App.java (main method)
 
 Description:
 
-Using a Java implementation, I would generate a potential decrypted plaintext for each length of column between 4-6 (inclusive), and then for I would count the number of common pairs and repeats in english found in each potential plaintext. The plaintext with the most common pairs and repeats in the english language would most likely be english.
+Using a Java implementation, I would generate a potential decrypted plaintext for each quantity of columns between 4-6 (inclusive), and then I would count the number of common pairs and repeats in english found in each potential plaintext. The plaintext with the most common pairs and repeats in the english language would most likely be english.
 
-1) The TranspositionDecrypt.decrypt(int smallestNumColumns, int largestNumColumns) method starts by gereating a potential decrypted plaintext for each number of columns.
+1) The TranspositionDecrypt.decrypt(int smallestNumColumns, int largestNumColumns) method starts by generating a potential decrypted plaintext for each number of columns.
 
 (4 columns) = "IEOJAHSEROOTNWG..."
 (5 columns) = "INACLAPNETRETUR..."

@@ -60,10 +60,12 @@ AEDFES
 
 3) Using lists of the most common 1,2,3,4 letter words in the english language, for each word in the list of separated words (described above), I record words which are of the same length as being a possibility of what the separated word will become. For example:
 
+(just for one separated word)
 TAEY=[THEY, THAT, HAVE, THIS, WANT, BEEN, TIME, WITH, WILL, YOUR, FROM, KNOW, GOOD, MUCH, SOME]
 
 Then for each word possibility, I record the necessary character mappings for the change. For example:
 
+(just for one separated word)
 TAEY=[[A=H], [A=H, E=A, Y=T], [T=H, E=V, Y=E], [A=H, E=I, Y=S], [T=W, E=N, Y=T], [T=B, A=E, Y=N], [A=I, E=M, Y=E], [T=W, A=I, E=T, Y=H], [T=Y, A=O, E=U, Y=R], [T=F, A=R, E=O, Y=M], [T=K, A=N, E=O, Y=W], [T=M, A=U, E=C, Y=H], [T=S, A=O, E=M, Y=E]]
 
 By then ordering the list of separated words smallest to biggest (e.g. 1 letter words, then 2 letter words, then 3 letter words...), and working down the list, word-by-word, taking the most probable character mappings, and updating characters in the list of separated words by the new character mappings acquired, until we have no more separated words to check; we end up with the majority of character mappings to take us from the characters in the partially decrypted plaintext to our desired plaintext. For example:

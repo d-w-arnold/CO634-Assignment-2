@@ -18,7 +18,7 @@ Using a Java implementation, I generate a potential decrypted plaintext for ever
 = 6!
 = 720 (possible orderings of 6 columns)
 
-(just some of the 720)
+(just some of the 720 possible orderings)
 "431025" -> "KDNNAAORAHATN..."
 "214350" -> "ANKDANAAORTHC..."
 "513204" -> "ANDANKTARAHOE..."

@@ -10,15 +10,15 @@ App.java (main method)
 
 Description:
 
-Using a Java implementation, I would find out the most likely 4, 5, and 6 character keys using letter frequency analysis of the ciphertext (same methodology as in Exercise 3) though this time for multiple key lengths). I would repeat the methodology incorporated in Exercise 2 to generate a potential decrypted plaintext for each key. Of those potential decrypted keys, the plaintext with the most common pairs and repeats in the english language would mostly be english.
+Using a Java implementation, I would find out the most likely 4, 5, and 6 character keys using letter frequency analysis of the ciphertext (same methodology as in Exercise 3 though this time for multiple key lengths). I would repeat the methodology incorporated in Exercise 2 to generate a potential decrypted plaintext for each key. Of those potential decrypted keys, the plaintext with the most common pairs and repeats in the english language would mostly be english.
 
-1) The VigenereDecrypt.decrypt(int smallestKeyLen, int largestKeyLen) method starts by utilising methodologies used in Exercise 3) to generate a potential key for a given length of key, we then do this once for each key length in the range of 4-6 characters (inclusive):
+1) The VigenereDecrypt.decrypt(int smallestKeyLen, int largestKeyLen) method starts by utilising methodologies used in Exercise 3 to generate a potential key for a given length of key, we then do this once for each key length in the range of 4-6 characters (inclusive):
 
 "FLUZ" = (most likely key of length 4 for ciphertext)
 "UUUFU" = (most likely key of length 5 for ciphertext)
 "EUFZUL" = (most likely key of length 6 for ciphertext)
 
-We then, by using methodologies in Exercise 2), generate a potential decrypted plaintext from each key:
+We then, by using methodologies in Exercise 2, generate a potential decrypted plaintext from each key:
 
 "FLUZ" -> "DVPDFUSOEREED..."
 "UUUFU" -> "OMPXQLSTEIEJO..."

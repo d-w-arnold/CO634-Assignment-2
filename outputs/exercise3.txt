@@ -12,11 +12,13 @@ Description:
 
 Using a Java implementation, I would find out the most likely 6 character key using letter frequency analysis of the ciphertext, and then using that most likely key, I would repeat the methodology incorporated in Exercise 2.
 
-1) The VigenereDecrypt.decrypt(int keyLen) method starts by calling the VigenereDecrypt.findKey(int keyLen) method, which starts by recording all the different groups of characters with fall under the same index character of the unknown length of key. For example:
+1) The VigenereDecrypt.decrypt(int keyLen) method starts by calling the VigenereDecrypt.findKey(int keyLen) method, which starts by recording all the different groups of characters which fall under the same index character of the unknown length of key. For example:
 
-(index) 012345
-        ↓↓↓↓↓↓
-   Key: ??????
+(ciphertext) "SITRWAQTSBWVOFS..."
+
+      (index) 012345012345012
+              ↓↓↓↓↓↓
+         Key: ??????
 
 (set) =
 0 = "SQOSLNZGRNMOS..." (these are all the characters which fall under index 0 of the key)
@@ -26,7 +28,7 @@ Using a Java implementation, I would find out the most likely 6 character key us
 4 = "WWIPDKVVMOGMB..." (these are all the characters which fall under index 4 of the key)
 5 = "AVYKKNZMYUYTY..." (these are all the characters which fall under index 5 of the key)
 
-2) For each set of characters (sets 0-6 as seen above) which fall under the same index character in the key, I record the character for each charcater in the character alphabet, for each set. For example:
+2) For each set of characters (sets 0-6 as seen above) which fall under the same index character in the key, I record the character for each character in the character alphabet, for each set. For example:
 
  (below is just the character count for set 0, same thing also done for sets 1-5)
  A -> 2
@@ -131,7 +133,7 @@ Having done this for all possible offsets in set 0, if we compared the totals of
 5 = 3.671742857142857
 ...
 24 = 4.115378571428571
-25 = 6.615942857142858 (this is the highest total)
+25 = 6.615942857142858 (* this is the highest total)
 
 This means that the first character of the 6 character key is likely to be the 26th character in our character alphabet, which would be the character 'Z'.
 
