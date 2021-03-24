@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Abstract Class for Decryption of ciphertext encoded with a Cipher.
@@ -11,7 +12,6 @@ import java.io.IOException;
  */
 public abstract class Decrypt
 {
-    private final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     protected String tess;
     protected String ciphertext;
     protected File cipherFile;
@@ -48,8 +48,31 @@ public abstract class Decrypt
         return cipherFileName.substring(1, cipherFileName.length() - 4);
     }
 
+    protected int getTotalOccurrences(String plaintext, ArrayList<String> english_common_pairs_and_repeats)
+    {
+        int totalOccurrences = 0;
+        totalOccurrences = getTotalOccurrencesHelper(plaintext, totalOccurrences, english_common_pairs_and_repeats);
+        return totalOccurrences;
+    }
+
+    protected int getTotalOccurrencesHelper(String newTmpPT, int totalOccurrences, ArrayList<String> english_trigraphs)
+    {
+        for (String trigraph : english_trigraphs) {
+            int lastIndex = 0;
+            while (lastIndex != -1) {
+                lastIndex = newTmpPT.indexOf(trigraph, lastIndex);
+                if (lastIndex != -1) {
+                    totalOccurrences++;
+                    lastIndex += trigraph.length();
+                }
+            }
+        }
+        return totalOccurrences;
+    }
+
     private void setCharAlphabet(File tess)
     {
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         if (tess.getName().equals("tess26.txt")) {
             charAlphabet = alphabet.toCharArray();
         } else if (tess.getName().equals("tess27.txt")) {

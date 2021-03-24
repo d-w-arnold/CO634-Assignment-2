@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class TranspositionDecrypt extends Decrypt
 {
-    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<String>()
+    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<>()
     {{
         add("TH");
         add("ER");
@@ -21,8 +21,8 @@ public class TranspositionDecrypt extends Decrypt
         add("TT");
         add("FF");
     }};
+    private final ArrayList<String> columnCombinations;
     private String pt;
-    private ArrayList<String> columnCombinations;
 
     public TranspositionDecrypt(File tessFile, File cipherFile) throws IOException
     {
@@ -60,36 +60,24 @@ public class TranspositionDecrypt extends Decrypt
                 }
             }
             // Generate potential plaintext from columns
-            String potentialPt = "";
+            StringBuilder potentialPt = new StringBuilder();
             for (int j = 0; j < baseColSize; j++) {
-                for (int k = 0; k < columns.size(); k++) {
-                    potentialPt += columns.get(k).get(j);
+                for (ArrayList<Character> column : columns) {
+                    potentialPt.append(column.get(j));
                 }
             }
             for (int j = 0; j < modAns; j++) {
-                potentialPt += columns.get(j).get(columns.get(j).size() - 1);
+                potentialPt.append(columns.get(j).get(columns.get(j).size() - 1));
             }
-            potentialPts.add(potentialPt);
+            potentialPts.add(potentialPt.toString());
         }
         // For each potential plaintext, count the number of common pair and repeats
         LinkedHashMap<String, Integer> occurrences = new LinkedHashMap<>();
-        for (int i = 0; i < potentialPts.size(); i++) {
-            String potentialPt = potentialPts.get(i);
-            int totalOccurrences = 0;
-            for (String commonPairOrRepeat : ENGLISH_COMMON_PAIRS_AND_REPEATS) {
-                int lastIndex = 0;
-                while (lastIndex != -1) {
-                    lastIndex = potentialPt.indexOf(commonPairOrRepeat, lastIndex);
-                    if (lastIndex != -1) {
-                        totalOccurrences++;
-                        lastIndex += commonPairOrRepeat.length();
-                    }
-                }
-            }
-            occurrences.put(potentialPt, totalOccurrences);
+        for (String potentialPt : potentialPts) {
+            occurrences.put(potentialPt, getTotalOccurrences(potentialPt, ENGLISH_COMMON_PAIRS_AND_REPEATS));
         }
         // The plaintext with th maximum number of common pair and repeat occurrences
-        String plaintextMaxOccurrences = occurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+        String plaintextMaxOccurrences = Objects.requireNonNull(occurrences.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(null)).getKey();
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(plaintextMaxOccurrences)) {
             System.out.println("Decrypted: " + plaintextMaxOccurrences);
@@ -120,11 +108,11 @@ public class TranspositionDecrypt extends Decrypt
             tmpCiphertext = genColumn(tmpCiphertext, columns, baseColSize);
         }
         // Find sequence of columns for which the highest number of pairAndRepeatOccurences happen
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (int i = 0; i < columns.size(); i++) {
-            s += Integer.toString(i);
+            s.append(i);
         }
-        genColumnCombinations(s, 0, (s.length() - 1));
+        genColumnCombinations(s.toString(), 0, (s.length() - 1));
         // Key is the ordering of columns: e.g. 514203
         // Value is the plaintext created from the certain ordering of columns
         HashMap<String, String> plaintextForColumnCombinations = new HashMap<>();
@@ -135,13 +123,13 @@ public class TranspositionDecrypt extends Decrypt
                 cList.add(Character.getNumericValue(c));
             }
             // Generate potential plaintext from column combination
-            String potentialPt = "";
+            StringBuilder potentialPt = new StringBuilder();
             for (int j = 0; j < baseColSize; j++) {
                 for (int c : cList) {
-                    potentialPt += columns.get(c).get(j);
+                    potentialPt.append(columns.get(c).get(j));
                 }
             }
-            plaintextForColumnCombinations.put(colComb, potentialPt);
+            plaintextForColumnCombinations.put(colComb, potentialPt.toString());
         }
         // Key is the ordering of columns: e.g. 514203
         // Value is the number of pairAndRepeatOccurences for a plaintext

@@ -8,9 +8,9 @@ import java.util.*;
  * @author David W. Arnold
  * @version 09/11/2019
  */
-public class VigenereDecrypt extends Decrypt
+public class VigDecrypt extends Decrypt
 {
-    final private LinkedHashMap<Character, Double> FREQUENCY_OF_LETTERS_IN_ENGLISH = new LinkedHashMap<Character, Double>()
+    final private LinkedHashMap<Character, Double> FREQUENCY_OF_LETTERS_IN_ENGLISH = new LinkedHashMap<>()
     {{
         put('A', 8.167);
         put('B', 1.492);
@@ -39,7 +39,7 @@ public class VigenereDecrypt extends Decrypt
         put('Y', 1.974);
         put('Z', 0.074);
     }};
-    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<String>()
+    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<>()
     {{
         add("TH");
         add("ER");
@@ -53,7 +53,7 @@ public class VigenereDecrypt extends Decrypt
     private String pt;
     private String unknownKey;
 
-    public VigenereDecrypt(File tessFile, File cipherFile) throws IOException
+    public VigDecrypt(File tessFile, File cipherFile) throws IOException
     {
         super(tessFile, cipherFile);
         this.pt = "";
@@ -128,7 +128,7 @@ public class VigenereDecrypt extends Decrypt
             occurrences.put(potentialKeys.get(i), totalOccurrences);
         }
         // The plaintext with the highest count of occurrences will most likely be english
-        String keyMaximumOccurrences = occurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+        String keyMaximumOccurrences = Objects.requireNonNull(occurrences.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(null)).getKey();
         String decryptedPlaintext = potentialDecryptedPlaintexts.get(keyMaximumOccurrences);
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(decryptedPlaintext)) {
@@ -143,19 +143,7 @@ public class VigenereDecrypt extends Decrypt
     // Decrypt with known key
     private void decryptPrivate(String key)
     {
-        String decryptedPlaintext = "";
-        char[] keyCharacters = key.toCharArray();
-        int charAlphaLen = charAlphabet.length;
-        int i = 0;
-        // For each character in the cipher text.
-        for (char character : ciphertext.toCharArray()) {
-            // The value of the character in the cipher text.
-            int a = findIndex(charAlphabet, character);
-            // The value of the character in the provided key.
-            int b = findIndex(charAlphabet, keyCharacters[(i % key.length())]);
-            decryptedPlaintext += charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen];
-            i++;
-        }
+        String decryptedPlaintext = decryptPrivateHelper(key);
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(decryptedPlaintext)) {
             System.out.println("Decrypted: " + decryptedPlaintext);
@@ -168,7 +156,12 @@ public class VigenereDecrypt extends Decrypt
     // Decrypt with known key, though do not test to see if plaintext is in tess??.txt
     private void decryptPrivateNoTest(String key)
     {
-        String decryptedPlaintext = "";
+        pt = decryptPrivateHelper(key);
+    }
+
+    private String decryptPrivateHelper(String key)
+    {
+        StringBuilder decryptedPlaintext = new StringBuilder();
         char[] keyCharacters = key.toCharArray();
         int charAlphaLen = charAlphabet.length;
         int i = 0;
@@ -178,10 +171,10 @@ public class VigenereDecrypt extends Decrypt
             int a = findIndex(charAlphabet, character);
             // The value of the character in the provided key.
             int b = findIndex(charAlphabet, keyCharacters[(i % key.length())]);
-            decryptedPlaintext += charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen];
+            decryptedPlaintext.append(charAlphabet[(charAlphaLen + (a - b)) % charAlphaLen]);
             i++;
         }
-        pt = decryptedPlaintext;
+        return decryptedPlaintext.toString();
     }
 
     // Find the most likely key of a certain length.
@@ -244,7 +237,7 @@ public class VigenereDecrypt extends Decrypt
         for (int i = 0; i < ciphertext.length(); i++) {
             int cIndexOfKey = i % keyLen;
             if (cIndexOfKey < tmp.size()) {
-                String newString = tmp.get(cIndexOfKey) + ciphertext.substring(i, i + 1);
+                String newString = tmp.get(cIndexOfKey) + ciphertext.charAt(i);
                 tmp.set(cIndexOfKey, newString);
             } else {
                 tmp.add(ciphertext.substring(i, i + 1));

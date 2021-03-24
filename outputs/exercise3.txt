@@ -4,7 +4,7 @@ Full Decrypted Plaintext for Exercise 3: THEHOURSDROPPEDPASTASTHEMOTIVEOFEACHACT
 
 For the Java source code used in the completion of Exercise 3, please refer to the supporting file(s):
 
-VigenereDecrypt.java
+VigDecrypt.java
 Decrypt.java (abstract class)
 App.java (main method)
 
@@ -12,7 +12,7 @@ Description:
 
 Using a Java implementation, I would find out the most likely 6 character key using letter frequency analysis of the ciphertext, and then using that most likely key, I would repeat the methodology incorporated in Exercise 2.
 
-1) The VigenereDecrypt.decrypt(int keyLen) method starts by calling the VigenereDecrypt.findKey(int keyLen) method, which starts by recording all the different groups of characters which fall under the same index character of the unknown length of key. For example:
+1) The VigDecrypt.decrypt(int keyLen) method starts by calling the VigDecrypt.findKey(int keyLen) method, which starts by recording all the different groups of characters which fall under the same index character of the unknown length of key. For example:
 
 (ciphertext) "SITRWAQTSBWVOFS..."
 

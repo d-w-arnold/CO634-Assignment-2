@@ -1,9 +1,9 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Decryption of ciphertext encoded with a Caesar Cipher.
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class CaesarDecrypt extends Decrypt
 {
-    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<String>()
+    final private ArrayList<String> ENGLISH_COMMON_PAIRS_AND_REPEATS = new ArrayList<>()
     {{
         add("TH");
         add("ER");
@@ -24,9 +24,9 @@ public class CaesarDecrypt extends Decrypt
         add("TT");
         add("FF");
     }};
+    private final HashMap<Character, Integer> occurrences;
+    private final HashMap<Character, String> decryptedPlaintexts;
     private String pt;
-    private HashMap<Character, Integer> occurrences;
-    private HashMap<Character, String> decryptedPlaintexts;
 
     public CaesarDecrypt(File tessFile, File cipherFile) throws IOException
     {
@@ -41,27 +41,16 @@ public class CaesarDecrypt extends Decrypt
         int charAlphaLen = charAlphabet.length;
         // For all possible characters in the character alphabet.
         for (int i = 0; i < charAlphaLen; i++) {
-            String plaintext = "";
+            StringBuilder plaintext = new StringBuilder();
             // For every single character in the ciphertext.
             for (int j = 0; j < ciphertext.length(); j++) {
                 int c = findIndex(charAlphabet, ciphertext.charAt(j));
-                plaintext += charAlphabet[(charAlphaLen + (c - i)) % charAlphaLen];
+                plaintext.append(charAlphabet[(charAlphaLen + (c - i)) % charAlphaLen]);
             }
-            int totalOccurrences = 0;
-            for (String commonPairOrRepeat : ENGLISH_COMMON_PAIRS_AND_REPEATS) {
-                int lastIndex = 0;
-                while (lastIndex != -1) {
-                    lastIndex = plaintext.indexOf(commonPairOrRepeat, lastIndex);
-                    if (lastIndex != -1) {
-                        totalOccurrences++;
-                        lastIndex += commonPairOrRepeat.length();
-                    }
-                }
-            }
-            occurrences.put(charAlphabet[i], totalOccurrences);
-            decryptedPlaintexts.put(charAlphabet[i], plaintext);
+            occurrences.put(charAlphabet[i], getTotalOccurrences(plaintext.toString(), ENGLISH_COMMON_PAIRS_AND_REPEATS));
+            decryptedPlaintexts.put(charAlphabet[i], plaintext.toString());
         }
-        char maximumOccurrencesKey = occurrences.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+        char maximumOccurrencesKey = Objects.requireNonNull(occurrences.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(null)).getKey();
         String potentialPlaintext = decryptedPlaintexts.get(maximumOccurrencesKey);
         // If the tess??.txt file contains the decrypted plaintext, it must be the correct decryption.
         if (tess.contains(potentialPlaintext)) {

@@ -23,18 +23,18 @@ public class App
 
         // Exercise 2
         File cexercise2 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise2.txt");
-        VigenereDecrypt vigenere1 = new VigenereDecrypt(tess26, cexercise2);
-        outputFile(vigenere1.decrypt("TESSOFTHEDURBERVILLES"), genPlaintextFileName(cexercise2));
+        VigDecrypt vig1 = new VigDecrypt(tess26, cexercise2);
+        outputFile(vig1.decrypt("TESSOFTHEDURBERVILLES"), genPlaintextFileName(cexercise2));
 
         // Exercise 3
         File cexercise3 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise3.txt");
-        VigenereDecrypt vigenere2 = new VigenereDecrypt(tess26, cexercise3);
-        outputFile(vigenere2.decrypt(6), genPlaintextFileName(cexercise3));
+        VigDecrypt vig2 = new VigDecrypt(tess26, cexercise3);
+        outputFile(vig2.decrypt(6), genPlaintextFileName(cexercise3));
 
         // Exercise 4
         File cexercise4 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise4.txt");
-        VigenereDecrypt vigenere3 = new VigenereDecrypt(tess26, cexercise4);
-        outputFile(vigenere3.decrypt(4, 6), genPlaintextFileName(cexercise4));
+        VigDecrypt vig3 = new VigDecrypt(tess26, cexercise4);
+        outputFile(vig3.decrypt(4, 6), genPlaintextFileName(cexercise4));
 
         // Exercise 5
         File cexercise5 = new File("." + File.separator + "ciphertexts" + File.separator + "cexercise5.txt");
@@ -94,8 +94,8 @@ public class App
         if (!destFile.exists()) {
             destFile.createNewFile();
         }
-        FileChannel source = null;
-        FileChannel destination = null;
+        FileChannel source;
+        FileChannel destination;
         source = new FileInputStream(sourceFile).getChannel();
         destination = new FileOutputStream(destFile).getChannel();
         if (destination != null && source != null) {
