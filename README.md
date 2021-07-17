@@ -1,4 +1,4 @@
-# CO634-Assignment-2
+# CO634 Assignment 2
 
 Decryption of ciphertexts encrypted with: Caesar, Vigenere, Transposition or General Substitution ciphers.
 
